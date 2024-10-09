@@ -1,0 +1,21 @@
+syntax = "proto3";
+option go_package = "distsys/grpc-prog/knn/knn";
+package knn;
+
+service KNNService {
+    rpc FindKNearestNeighbors(KNNRequest) returns (KNNResponse);
+}
+
+message KNNRequest {
+    repeated float data_point = 1; // The query point
+    int32 k = 2;                   // Number of nearest neighbors
+}
+
+message KNNResponse {
+    repeated Neighbor neighbors = 1; // List of nearest neighbors
+}
+
+message Neighbor {
+    float data_point = 1; // The neighbor's data point
+    float distance = 2;             // Distance to the query point
+}
