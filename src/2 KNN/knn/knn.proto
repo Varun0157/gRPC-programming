@@ -7,7 +7,7 @@ service KNNService {
 }
 
 message KNNRequest {
-    repeated float data_point = 1; // The query point
+    float data_point = 1; // The query point
     int32 k = 2;                   // Number of nearest neighbors
 }
 
