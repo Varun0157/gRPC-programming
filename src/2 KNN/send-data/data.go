@@ -17,7 +17,7 @@ import (
 )
 
 // read the floats from the file
-func readDataFromFile(filePath string) ([]float32, error) {
+func readDataFromFile(filePath string) ([]float64, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -25,14 +25,14 @@ func readDataFromFile(filePath string) ([]float32, error) {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	var data []float32
+	var data []float64
 	for scanner.Scan() {
 		value, err := strconv.ParseFloat(scanner.Text(), 32)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing float: %v", err)
 		}
 
-		data = append(data, float32(value))
+		data = append(data, float64(value))
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, fmt.Errorf("error reading file: %v", err)
@@ -41,7 +41,7 @@ func readDataFromFile(filePath string) ([]float32, error) {
 	return data, nil
 }
 
-// func sendRequestToServer(port string, dataPoint float32, k int) ([]float32, error) {
+// func sendRequestToServer(port string, dataPoint float64, k int) ([]float64, error) {
 //     conn, err := grpc.Dial(fmt.Sprintf(":%s", port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
 //     if err != nil {
 //         return nil, fmt.Errorf("failed to connect to server: %v", err)
@@ -64,7 +64,7 @@ func readDataFromFile(filePath string) ([]float32, error) {
 //     }
 
 //     // Extract distances from response
-//     var neighbors []float32
+//     var neighbors []float64
 //     for _, neighbor := range resp.Neighbors {
 //         neighbors = append(neighbors, neighbor.DataPoint) // or neighbor.Distance based on your needs
 //     }
@@ -74,7 +74,7 @@ func readDataFromFile(filePath string) ([]float32, error) {
 
 
 // partition the data across the files 
-func partitionData(ports []string, dataPoints []float32) error {
+func partitionData(ports []string, dataPoints []float64) error {
 	var NUM_SERVERS int = len(ports)	
 	var NUM_DATA_POINTS int = len(dataPoints)
 

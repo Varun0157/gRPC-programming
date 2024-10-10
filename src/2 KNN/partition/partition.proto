@@ -7,7 +7,7 @@ service DataService {
 }
 
 message DataRequest {
-    repeated float Data = 1;    // Data to send to the server 
+    repeated double Data = 1;    // Data to send to the server 
 }
 
 message DataResponse {

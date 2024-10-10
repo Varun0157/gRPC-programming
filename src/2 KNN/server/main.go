@@ -23,7 +23,7 @@ import (
 type server struct {
     knn.UnimplementedKNNServiceServer
 	data.UnimplementedDataServiceServer
-    dataset []float32
+    dataset []float64
 }
 
 func euclideanDistance(a, b float64) float64 {
@@ -34,8 +34,8 @@ func (s *server) FindKNearestNeighbors(ctx context.Context, req *knn.KNNRequest)
     var neighbors []*knn.Neighbor
 
     for _, dataPoint := range s.dataset {
-        distance := euclideanDistance(float64(req.DataPoint), float64(dataPoint))
-        neighbors = append(neighbors, &knn.Neighbor{DataPoint: float32(dataPoint), Distance: float32(distance)})
+        distance := euclideanDistance((req.DataPoint), (dataPoint))
+        neighbors = append(neighbors, &knn.Neighbor{DataPoint: dataPoint, Distance: distance})
     }
 
     // sort neighbours and select top k (inefficient, works for now)
@@ -69,7 +69,7 @@ func listenOnPort() (lis net.Listener, port int, err error) {
     return lis, port, nil
 }
 
-func writePortToFile(port int, portFilePath string) error {
+func appendPortToFile(port int, portFilePath string) error {
 	file, err := os.OpenFile(portFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
 		return err 
@@ -103,7 +103,7 @@ func LaunchServer(portFilePath string) {
 	lis, port, nil := listenOnPort()
 	log.Printf("server listening on port %d", port)
 
-	if err := writePortToFile(port, portFilePath); err != nil {
+	if err := appendPortToFile(port, portFilePath); err != nil {
 		log.Fatalf("failed to write port to file: %v", err)
 	}
 	log.Printf("port number written to %s", portFilePath)
