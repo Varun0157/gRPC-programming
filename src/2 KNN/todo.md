@@ -1,8 +1,6 @@
 - write assumptions (sequential launch and release of servers)
-- take relevant input
 - remove deprecations
 - a lot of names are bad, refactor 
 - use more optimal algo for partitioning
 - use more optimal algo for knn
 - consider showing datapoint and distance
-- 

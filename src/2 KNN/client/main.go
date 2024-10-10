@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"sort"
 	"time"
 
 	"google.golang.org/grpc"
@@ -26,13 +25,6 @@ func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint fl
         results = append(results, response...)
     }
 
-    // sort results and choose top k (for now)
-    sort.Slice(results, func(i, j int) bool {
-        return results[i] < results[j]
-    })
-    if len(results) > numNearestNeighbours {
-        results = results[:numNearestNeighbours]
-    }
     return results, nil
 }
 
@@ -70,27 +62,27 @@ func sendRequestToServer(port string, dataPoint float64, k int) ([]float64, erro
 
 
 func main() {
-    numNearestNeighbors := flag.Int("num_nearest_neighbours", 3, "number of nearest neighbors to find")
     portFilePath := flag.String("port_file", "active_servers.txt", "file to write active server ports to")
-    
     flag.Parse()  
 
 	if !utils.IsFlagPassed("port_file") {
         log.Fatalf("port_file not received")
 	}
     
-    if !utils.IsFlagPassed("num_nearest_neighbours") {
-        log.Fatal("num_servers not received")
-    } else if *numNearestNeighbors <= 0 {
-        log.Fatalf("num_nearest_neighbors must be a positive integer, received %d.", *numNearestNeighbors)
-    }
-    
     ports, err := utils.ReadPortsFromFile(*portFilePath)
     if err != nil {
         log.Fatalf("reading ports from file %s: %v", *portFilePath, err)
     }
 
-    nearest_neighbours, err := getKNearestNeighbors(ports, *numNearestNeighbors, 5.0)
+    var point float64 
+    fmt.Println("enter the data point for which to find the nearest neighbors: ")
+    fmt.Scan(&point)
+
+    var numNearestNeighbors int 
+    fmt.Println("enter the number of nearest neighbors to find: ")
+    fmt.Scan(&numNearestNeighbors)
+
+    nearest_neighbours, err := getKNearestNeighbors(ports, numNearestNeighbors, point)
     if err != nil {
         log.Fatalf("error getting nearest neighbors: %v", err)
     }

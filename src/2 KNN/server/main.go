@@ -140,7 +140,7 @@ func LaunchServer(portFilePath string) {
 
 func main() {
 	// check os.Args for port file path
-	if len(os.Args) < 2 {
+	if len(os.Args) != 2 {
 		log.Fatalf("usage: %s <port_file_path>", os.Args[0])
 	}
 	portFilePath := os.Args[1]
