@@ -11,17 +11,12 @@ import (
 
 	"google.golang.org/grpc"
 
-	pb "distsys/grpc-prog/knn/knn"
+	pb "distsys/grpc-prog/knn/comm"
 	"distsys/grpc-prog/knn/utils"
 )
 
 // getKNearestNeighbors retrieves the k nearest neighbors from active servers
-func getKNearestNeighbors(portFilePath string, numNearestNeighbours int, dataPoint float32) ([]float32, error) {
-    ports, err := readPortsFromFile(portFilePath)
-    if err != nil {
-        return nil, err
-    }
-
+func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint float32) ([]float32, error) {
     var results []float32
     for _, port := range ports{
         response, err := sendRequestToServer(port, dataPoint, numNearestNeighbours)
@@ -56,6 +51,9 @@ func readPortsFromFile(filePath string) ([]string, error) {
     // get counts of each port 
     portCount := make(map[string]int)
     for _, port := range ports {
+        if len(port) == 0 {
+            continue
+        }
         portCount[port]++
     }
 
@@ -120,8 +118,12 @@ func main() {
         log.Fatalf("[error] num_nearest_neighbors must be a positive integer, received %d.", *numNearestNeighbors)
     }
     
-    print("here\n")
-    nearest_neighbours, err := getKNearestNeighbors(*portFilePath, *numNearestNeighbors, 5.0)
+    ports, err := readPortsFromFile(*portFilePath)
+    if err != nil {
+        log.Fatalf("[error] reading ports from file %s: %v", *portFilePath, err)
+    }
+
+    nearest_neighbours, err := getKNearestNeighbors(ports, *numNearestNeighbors, 5.0)
     if err != nil {
         log.Fatalf("error getting nearest neighbors: %v", err)
     }

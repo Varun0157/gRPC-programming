@@ -14,7 +14,7 @@ import (
 	"strings"
 	"syscall"
 
-	pb "distsys/grpc-prog/knn/knn"
+	pb "distsys/grpc-prog/knn/comm"
 
 	"google.golang.org/grpc"
 )

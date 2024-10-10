@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "distsys/grpc-prog/knn/knn";
+option go_package = "distsys/grpc-prog/knn/comm";
 package knn;
 
 service KNNService {
