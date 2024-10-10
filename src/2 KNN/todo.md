@@ -1,1 +1,3 @@
-- remove hardcoded active_servers file path
+- dataset partitioning
+- write assumptions (sequential launch and release of servers)
+- take relevant input
