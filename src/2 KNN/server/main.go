@@ -1,8 +1,7 @@
-package server
+package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"math"
@@ -16,7 +15,6 @@ import (
 	"syscall"
 
 	pb "distsys/grpc-prog/knn/knn"
-	"distsys/grpc-prog/knn/utils"
 
 	"google.golang.org/grpc"
 )
@@ -64,9 +62,31 @@ func listenOnPort() (lis net.Listener, port int, err error) {
     return lis, port, nil
 }
 
+// func AppendFile() {		
+// 	file, err := os.OpenFile("test.txt", os.O_WRONLY|os.O_APPEND, 0644)
+// 	if err != nil {
+// 		log.Fatalf("failed opening file: %s", err)
+// 	}
+// 	defer file.Close()
+
+// 	len, err := file.WriteString(" The Go language was conceived in September 2007 by Robert Griesemer, Rob Pike, and Ken Thompson at Google.")
+// 	if err != nil {
+// 		log.Fatalf("failed writing to file: %s", err)
+// 	}
+// 	fmt.Printf("\nLength: %d bytes", len)
+// 	fmt.Printf("\nFile Name: %s", file.Name())
+// }
+
 func writePortToFile(port int, portFilePath string) error {
-	portStr := fmt.Sprintf("%d\n", port)
-	return os.WriteFile(portFilePath, []byte(portStr), 0644)
+	file, err := os.OpenFile(portFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	if err != nil {
+		return err 
+	}
+
+	defer file.Close()
+
+	_, err = file.WriteString(fmt.Sprintf("%d\n", port))
+	return err
 }
 
 func removePortFromFile(port int, portFilePath string) error {
@@ -125,12 +145,10 @@ func LaunchServer(portFilePath string) {
 }
 
 func main() {
-	portFilePath := flag.String("port_file", "active_servers.txt", "file to write active server ports to")
-	flag.Parse()
-
-	if !utils.IsFlagPassed("port_file") {
-		log.Fatalf("[error] port_file not received")
+	// check os.Args for port file path
+	if len(os.Args) < 2 {
+		log.Fatalf("usage: %s <port_file_path>", os.Args[0])
 	}
-
-	LaunchServer(*portFilePath)
+	portFilePath := os.Args[1]
+	LaunchServer(portFilePath)
 }
