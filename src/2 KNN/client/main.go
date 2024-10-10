@@ -16,18 +16,14 @@ import (
 )
 
 // getKNearestNeighbors retrieves the k nearest neighbors from active servers
-func getKNearestNeighbors(numServers int, portFilePath string, numNearestNeighbours int, dataPoint float32) ([]float32, error) {
+func getKNearestNeighbors(portFilePath string, numNearestNeighbours int, dataPoint float32) ([]float32, error) {
     ports, err := readPortsFromFile(portFilePath)
     if err != nil {
         return nil, err
     }
 
-    if len(ports) < numServers {
-        return nil, fmt.Errorf("not enough servers in port file: expected %d, got %d", numServers, len(ports))
-    }
-
     var results []float32
-    for _, port := range ports[:numServers] {
+    for _, port := range ports{
         response, err := sendRequestToServer(port, dataPoint, numNearestNeighbours)
         if err != nil {
             log.Printf("[warning] could not contact server on port %s: %v", port, err)
@@ -55,6 +51,21 @@ func readPortsFromFile(filePath string) ([]string, error) {
 
     if err := scanner.Err(); err != nil {
         return nil, fmt.Errorf("error reading port file: %v", err)
+    }
+
+    // get counts of each port 
+    portCount := make(map[string]int)
+    for _, port := range ports {
+        portCount[port]++
+    }
+
+    // remove duplicates
+    ports = nil
+    for port, count := range portCount {
+        if count > 1 {
+            log.Printf("[warning] duplicate port %s found %d times", port, count)
+        }
+        ports = append(ports, port)
     }
 
     return ports, nil
@@ -94,7 +105,6 @@ func sendRequestToServer(port string, dataPoint float32, k int) ([]float32, erro
 
 
 func main() {
-    numServers := flag.Int("num_servers", 0, "number of servers (positive integer)")
     numNearestNeighbors := flag.Int("num_nearest_neighbours", 3, "number of nearest neighbors to find")
     portFilePath := flag.String("port_file", "active_servers.txt", "file to write active server ports to")
     
@@ -109,15 +119,9 @@ func main() {
     } else if *numNearestNeighbors <= 0 {
         log.Fatalf("[error] num_nearest_neighbors must be a positive integer, received %d.", *numNearestNeighbors)
     }
-        
-    if !utils.IsFlagPassed("num_servers") {
-        log.Fatal("[error] num_servers not received")
-    } else if *numServers <= 0 {
-        log.Fatalf("[error] num_servers must be a positive integer, received %d.", *numServers)
-    }
     
     print("here\n")
-    nearest_neighbours, err := getKNearestNeighbors(*numServers, *portFilePath, *numNearestNeighbors, 5.0)
+    nearest_neighbours, err := getKNearestNeighbors(*portFilePath, *numNearestNeighbors, 5.0)
     if err != nil {
         log.Fatalf("error getting nearest neighbors: %v", err)
     }
