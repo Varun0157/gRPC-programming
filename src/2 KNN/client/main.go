@@ -1,18 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
 	"log"
-	"os"
+	"sort"
 	"time"
 
 	"google.golang.org/grpc"
 
-	pb "distsys/grpc-prog/knn/comm"
-	"distsys/grpc-prog/knn/utils"
+	knn "distsys/grpc-prog/knn/knn"
+	utils "distsys/grpc-prog/knn/utils"
 )
 
 // getKNearestNeighbors retrieves the k nearest neighbors from active servers
@@ -22,51 +21,19 @@ func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint fl
         response, err := sendRequestToServer(port, dataPoint, numNearestNeighbours)
         if err != nil {
             log.Printf("[warning] could not contact server on port %s: %v", port, err)
-            continue // Skip this server on error
+            continue 
         }
         results = append(results, response...)
     }
 
+    // sort results and choose top k (for now)
+    sort.Slice(results, func(i, j int) bool {
+        return results[i] < results[j]
+    })
+    if len(results) > numNearestNeighbours {
+        results = results[:numNearestNeighbours]
+    }
     return results, nil
-}
-
-// readPortsFromFile reads port numbers from a given file
-func readPortsFromFile(filePath string) ([]string, error) {
-    file, err := os.Open(filePath)
-    if err != nil {
-        return nil, fmt.Errorf("could not open port file: %v", err)
-    }
-    defer file.Close()
-
-    var ports []string
-    scanner := bufio.NewScanner(file)
-    for scanner.Scan() {
-        ports = append(ports, scanner.Text())
-    }
-
-    if err := scanner.Err(); err != nil {
-        return nil, fmt.Errorf("error reading port file: %v", err)
-    }
-
-    // get counts of each port 
-    portCount := make(map[string]int)
-    for _, port := range ports {
-        if len(port) == 0 {
-            continue
-        }
-        portCount[port]++
-    }
-
-    // remove duplicates
-    ports = nil
-    for port, count := range portCount {
-        if count > 1 {
-            log.Printf("[warning] duplicate port %s found %d times", port, count)
-        }
-        ports = append(ports, port)
-    }
-
-    return ports, nil
 }
 
 // sendRequestToServer sends a request to a specific server and returns the neighbors
@@ -77,9 +44,9 @@ func sendRequestToServer(port string, dataPoint float32, k int) ([]float32, erro
     }
     defer conn.Close()
 
-    client := pb.NewKNNServiceClient(conn)
+    client := knn.NewKNNServiceClient(conn)
 
-    req := &pb.KNNRequest{
+    req := &knn.KNNRequest{
         DataPoint:     dataPoint,
         K:             int32(k),
     }
@@ -118,7 +85,7 @@ func main() {
         log.Fatalf("[error] num_nearest_neighbors must be a positive integer, received %d.", *numNearestNeighbors)
     }
     
-    ports, err := readPortsFromFile(*portFilePath)
+    ports, err := utils.ReadPortsFromFile(*portFilePath)
     if err != nil {
         log.Fatalf("[error] reading ports from file %s: %v", *portFilePath, err)
     }

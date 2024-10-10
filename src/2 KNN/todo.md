@@ -1,3 +1,4 @@
 - dataset partitioning
 - write assumptions (sequential launch and release of servers)
 - take relevant input
+- remove deprecations

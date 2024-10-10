@@ -1,0 +1,147 @@
+package main
+
+import (
+	"bufio"
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"time"
+
+	partition "distsys/grpc-prog/knn/partition"
+	utils "distsys/grpc-prog/knn/utils"
+
+	"google.golang.org/grpc"
+)
+
+// read the floats from the file
+func readDataFromFile(filePath string) ([]float32, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	var data []float32
+	for scanner.Scan() {
+		value, err := strconv.ParseFloat(scanner.Text(), 32)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing float: %v", err)
+		}
+
+		data = append(data, float32(value))
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading file: %v", err)
+	}
+
+	return data, nil
+}
+
+// func sendRequestToServer(port string, dataPoint float32, k int) ([]float32, error) {
+//     conn, err := grpc.Dial(fmt.Sprintf(":%s", port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
+//     if err != nil {
+//         return nil, fmt.Errorf("failed to connect to server: %v", err)
+//     }
+//     defer conn.Close()
+
+//     client := knn.NewKNNServiceClient(conn)
+
+//     req := &knn.KNNRequest{
+//         DataPoint:     dataPoint,
+//         K:             int32(k),
+//     }
+
+//     ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+//     defer cancel()
+
+//     resp, err := client.FindKNearestNeighbors(ctx, req)
+//     if err != nil {
+//         return nil, fmt.Errorf("error calling FindKNearestNeighbors: %v", err)
+//     }
+
+//     // Extract distances from response
+//     var neighbors []float32
+//     for _, neighbor := range resp.Neighbors {
+//         neighbors = append(neighbors, neighbor.DataPoint) // or neighbor.Distance based on your needs
+//     }
+
+//     return neighbors, nil
+// }
+
+
+// partition the data across the files 
+func partitionData(ports []string, dataPoints []float32) error {
+	var NUM_SERVERS int = len(ports)	
+	var NUM_DATA_POINTS int = len(dataPoints)
+
+	getBounds := func (i int) (int, int) {
+		start := i * NUM_DATA_POINTS / NUM_SERVERS
+		end := (i + 1) * NUM_DATA_POINTS / NUM_SERVERS
+		return start, end
+	}
+
+	sendData := func (i int, port string) (int, int, error) {
+		conn, err := grpc.Dial(fmt.Sprintf(":%s", port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
+		if err != nil {
+			return -1, -1, fmt.Errorf("failed to connect to server: %v", err)
+		}
+		defer conn.Close()
+
+		client := partition.NewDataServiceClient(conn)
+
+		start, end := getBounds(i)
+		req := &partition.DataRequest{
+			Data: dataPoints[start:end],
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		resp, err := client.PartitionData(ctx, req)
+		if err != nil || !resp.Success {
+			return -1,-1, fmt.Errorf("error sending data to port %s: %v", port, err)
+		}
+
+		return start, end , nil
+	}
+
+	for i, port := range ports {
+		start, end, err := sendData(i, port)
+		if err != nil {
+			return err
+		}
+		log.Printf("sent data points %d to %d to port %s", start, end, port)
+	}
+
+	return nil
+}
+
+// load in numbers from data.txt, and partition it across the servers in active_servers.txt
+func main() {
+	// parse command line arguments
+	var dataFile string
+	flag.StringVar(&dataFile, "data", "data.txt", "file containing data to partition")
+	flag.Parse()
+
+	// read in data from file
+	dataPoints, err := readDataFromFile(dataFile)
+	if err != nil {
+		log.Fatalf("could not read data from file: %v", err)
+	}
+
+	// read in active servers
+	ports, err := utils.ReadPortsFromFile("active_servers.txt")
+	if err != nil {
+		log.Fatalf("could not read active servers: %v", err)
+	}
+
+	// partition data across servers
+	err = partitionData(ports, dataPoints)
+	if err != nil {
+		log.Fatalf("could not partition data: %v", err)
+	}
+}

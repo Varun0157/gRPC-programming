@@ -1,0 +1,15 @@
+syntax = "proto3";
+option go_package = "distsys/grpc-prog/knn/partition";
+package partition;
+
+service DataService {
+    rpc PartitionData(DataRequest) returns (DataResponse);
+}
+
+message DataRequest {
+    repeated float Data = 1;    // Data to send to the server 
+}
+
+message DataResponse {
+    bool Success = 1;           // Data received from the server
+}

@@ -14,26 +14,28 @@ import (
 	"strings"
 	"syscall"
 
-	pb "distsys/grpc-prog/knn/comm"
+	knn "distsys/grpc-prog/knn/knn"
+	data "distsys/grpc-prog/knn/partition"
 
 	"google.golang.org/grpc"
 )
 
 type server struct {
-    pb.UnimplementedKNNServiceServer
-    dataset []float64
+    knn.UnimplementedKNNServiceServer
+	data.UnimplementedDataServiceServer
+    dataset []float32
 }
 
 func euclideanDistance(a, b float64) float64 {
     return math.Abs(a - b)
 }
 
-func (s *server) FindKNearestNeighbors(ctx context.Context, req *pb.KNNRequest) (*pb.KNNResponse, error) {
-    var neighbors []*pb.Neighbor
+func (s *server) FindKNearestNeighbors(ctx context.Context, req *knn.KNNRequest) (*knn.KNNResponse, error) {
+    var neighbors []*knn.Neighbor
 
     for _, dataPoint := range s.dataset {
-        distance := euclideanDistance(float64(req.DataPoint), dataPoint)
-        neighbors = append(neighbors, &pb.Neighbor{DataPoint: float32(dataPoint), Distance: float32(distance)})
+        distance := euclideanDistance(float64(req.DataPoint), float64(dataPoint))
+        neighbors = append(neighbors, &knn.Neighbor{DataPoint: float32(dataPoint), Distance: float32(distance)})
     }
 
     // sort neighbours and select top k (inefficient, works for now)
@@ -45,7 +47,12 @@ func (s *server) FindKNearestNeighbors(ctx context.Context, req *pb.KNNRequest) 
         neighbors = neighbors[:req.K]
     }
 
-    return &pb.KNNResponse{Neighbors: neighbors}, nil
+    return &knn.KNNResponse{Neighbors: neighbors}, nil
+}
+
+func (s *server) PartitionData(ctx context.Context, req *data.DataRequest) (*data.DataResponse, error) {
+	s.dataset = req.Data
+	return &data.DataResponse{Success: true}, nil
 }
 
 func listenOnPort() (lis net.Listener, port int, err error) {
@@ -61,21 +68,6 @@ func listenOnPort() (lis net.Listener, port int, err error) {
 
     return lis, port, nil
 }
-
-// func AppendFile() {		
-// 	file, err := os.OpenFile("test.txt", os.O_WRONLY|os.O_APPEND, 0644)
-// 	if err != nil {
-// 		log.Fatalf("failed opening file: %s", err)
-// 	}
-// 	defer file.Close()
-
-// 	len, err := file.WriteString(" The Go language was conceived in September 2007 by Robert Griesemer, Rob Pike, and Ken Thompson at Google.")
-// 	if err != nil {
-// 		log.Fatalf("failed writing to file: %s", err)
-// 	}
-// 	fmt.Printf("\nLength: %d bytes", len)
-// 	fmt.Printf("\nFile Name: %s", file.Name())
-// }
 
 func writePortToFile(port int, portFilePath string) error {
 	file, err := os.OpenFile(portFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
@@ -117,7 +109,9 @@ func LaunchServer(portFilePath string) {
 	log.Printf("port number written to %s", portFilePath)
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterKNNServiceServer(grpcServer, &server{dataset: []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0}}) // Example dataset
+	server := server{}
+	data.RegisterDataServiceServer(grpcServer, &server)
+	knn.RegisterKNNServiceServer(grpcServer, &server) 
 	log.Printf("server registered...")
 
 	// Set up signal handling

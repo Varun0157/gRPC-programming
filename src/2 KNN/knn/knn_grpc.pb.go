@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.12.4
-// source: comm/comm.proto
+// source: knn/knn.proto
 
-package comm
+package knn
 
 import (
 	context "context"
@@ -117,5 +117,5 @@ var KNNService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "comm/comm.proto",
+	Metadata: "knn/knn.proto",
 }
