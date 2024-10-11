@@ -3,7 +3,7 @@ option go_package = "distsys/grpc-prog/knn/partition";
 package partition;
 
 service DataService {
-    rpc PartitionData(DataRequest) returns (DataResponse);
+    rpc StoreData(DataRequest) returns (DataResponse);
 }
 
 message DataRequest {

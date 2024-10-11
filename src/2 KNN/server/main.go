@@ -26,15 +26,17 @@ type server struct {
     dataset []float64
 }
 
-func euclideanDistance(a, b float64) float64 {
-    return math.Abs(a - b)
-}
+
 
 func (s *server) FindKNearestNeighbors(ctx context.Context, req *knn.KNNRequest) (*knn.KNNResponse, error) {
     var neighbors []*knn.Neighbor
 
+	euclidianDistance := func (a, b float64) float64 {
+		return math.Abs(a - b)
+	}
+
     for _, dataPoint := range s.dataset {
-        distance := euclideanDistance((req.DataPoint), (dataPoint))
+        distance := euclidianDistance(req.DataPoint, dataPoint)
         neighbors = append(neighbors, &knn.Neighbor{DataPoint: dataPoint, Distance: distance})
     }
 
@@ -50,7 +52,7 @@ func (s *server) FindKNearestNeighbors(ctx context.Context, req *knn.KNNRequest)
     return &knn.KNNResponse{Neighbors: neighbors}, nil
 }
 
-func (s *server) PartitionData(ctx context.Context, req *data.DataRequest) (*data.DataResponse, error) {
+func (s *server) StoreData(ctx context.Context, req *data.DataRequest) (*data.DataResponse, error) {
 	s.dataset = req.Data
 	return &data.DataResponse{Success: true}, nil
 }
@@ -114,7 +116,7 @@ func LaunchServer(portFilePath string) {
 	knn.RegisterKNNServiceServer(grpcServer, &server) 
 	log.Printf("server registered...")
 
-	// Set up signal handling
+	// terminate on ^C
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
@@ -139,7 +141,6 @@ func LaunchServer(portFilePath string) {
 }
 
 func main() {
-	// check os.Args for port file path
 	if len(os.Args) != 2 {
 		log.Fatalf("usage: %s <port_file_path>", os.Args[0])
 	}

@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DataService_PartitionData_FullMethodName = "/partition.DataService/PartitionData"
+	DataService_StoreData_FullMethodName = "/partition.DataService/StoreData"
 )
 
 // DataServiceClient is the client API for DataService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DataServiceClient interface {
-	PartitionData(ctx context.Context, in *DataRequest, opts ...grpc.CallOption) (*DataResponse, error)
+	StoreData(ctx context.Context, in *DataRequest, opts ...grpc.CallOption) (*DataResponse, error)
 }
 
 type dataServiceClient struct {
@@ -37,10 +37,10 @@ func NewDataServiceClient(cc grpc.ClientConnInterface) DataServiceClient {
 	return &dataServiceClient{cc}
 }
 
-func (c *dataServiceClient) PartitionData(ctx context.Context, in *DataRequest, opts ...grpc.CallOption) (*DataResponse, error) {
+func (c *dataServiceClient) StoreData(ctx context.Context, in *DataRequest, opts ...grpc.CallOption) (*DataResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DataResponse)
-	err := c.cc.Invoke(ctx, DataService_PartitionData_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, DataService_StoreData_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *dataServiceClient) PartitionData(ctx context.Context, in *DataRequest, 
 // All implementations must embed UnimplementedDataServiceServer
 // for forward compatibility.
 type DataServiceServer interface {
-	PartitionData(context.Context, *DataRequest) (*DataResponse, error)
+	StoreData(context.Context, *DataRequest) (*DataResponse, error)
 	mustEmbedUnimplementedDataServiceServer()
 }
 
@@ -62,8 +62,8 @@ type DataServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedDataServiceServer struct{}
 
-func (UnimplementedDataServiceServer) PartitionData(context.Context, *DataRequest) (*DataResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PartitionData not implemented")
+func (UnimplementedDataServiceServer) StoreData(context.Context, *DataRequest) (*DataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StoreData not implemented")
 }
 func (UnimplementedDataServiceServer) mustEmbedUnimplementedDataServiceServer() {}
 func (UnimplementedDataServiceServer) testEmbeddedByValue()                     {}
@@ -86,20 +86,20 @@ func RegisterDataServiceServer(s grpc.ServiceRegistrar, srv DataServiceServer) {
 	s.RegisterService(&DataService_ServiceDesc, srv)
 }
 
-func _DataService_PartitionData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DataService_StoreData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DataServiceServer).PartitionData(ctx, in)
+		return srv.(DataServiceServer).StoreData(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: DataService_PartitionData_FullMethodName,
+		FullMethod: DataService_StoreData_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServiceServer).PartitionData(ctx, req.(*DataRequest))
+		return srv.(DataServiceServer).StoreData(ctx, req.(*DataRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +112,8 @@ var DataService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*DataServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "PartitionData",
-			Handler:    _DataService_PartitionData_Handler,
+			MethodName: "StoreData",
+			Handler:    _DataService_StoreData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

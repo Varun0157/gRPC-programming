@@ -28,7 +28,7 @@ func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint fl
     return results, nil
 }
 
-// sendRequestToServer sends a request to a specific server and returns the neighbors
+// send a request to a specific server and return the neighbors
 func sendRequestToServer(port string, dataPoint float64, k int) ([]float64, error) {
     conn, err := grpc.Dial(fmt.Sprintf(":%s", port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
     if err != nil {

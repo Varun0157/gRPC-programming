@@ -41,37 +41,6 @@ func readDataFromFile(filePath string) ([]float64, error) {
 	return data, nil
 }
 
-// func sendRequestToServer(port string, dataPoint float64, k int) ([]float64, error) {
-//     conn, err := grpc.Dial(fmt.Sprintf(":%s", port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
-//     if err != nil {
-//         return nil, fmt.Errorf("failed to connect to server: %v", err)
-//     }
-//     defer conn.Close()
-
-//     client := knn.NewKNNServiceClient(conn)
-
-//     req := &knn.KNNRequest{
-//         DataPoint:     dataPoint,
-//         K:             int32(k),
-//     }
-
-//     ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-//     defer cancel()
-
-//     resp, err := client.FindKNearestNeighbors(ctx, req)
-//     if err != nil {
-//         return nil, fmt.Errorf("error calling FindKNearestNeighbors: %v", err)
-//     }
-
-//     // Extract distances from response
-//     var neighbors []float64
-//     for _, neighbor := range resp.Neighbors {
-//         neighbors = append(neighbors, neighbor.DataPoint) // or neighbor.Distance based on your needs
-//     }
-
-//     return neighbors, nil
-// }
-
 
 // partition the data across the files 
 func partitionData(ports []string, dataPoints []float64) error {
@@ -101,7 +70,7 @@ func partitionData(ports []string, dataPoints []float64) error {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
-		resp, err := client.PartitionData(ctx, req)
+		resp, err := client.StoreData(ctx, req)
 		if err != nil || !resp.Success {
 			return -1,-1, fmt.Errorf("error sending data to port %s: %v", port, err)
 		}
