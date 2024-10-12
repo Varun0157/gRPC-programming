@@ -13,7 +13,7 @@ server_launch="go run server/main.go active_servers.txt"
 # Loop to open terminals
 for ((i=1; i<=$num_servers; i++))
 do
-    gnome-terminal -- bash -c "$server_launch"
+    gnome-terminal -- bash -c "$server_launch" # todo: generalise
 done
 
 # send the data to each server 
