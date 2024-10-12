@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	knn "distsys/grpc-prog/knn/knn"
 	utils "distsys/grpc-prog/knn/utils"
@@ -49,7 +50,7 @@ func mergeNearestNeighbours(nns [][]utils.NeighbourInfo, k int) []utils.Neighbou
 
 // send a request to a specific server and return the neighbors
 func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.NeighbourInfo), error) {
-    conn, err := grpc.Dial(fmt.Sprintf(":%s", port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
+    conn, err := grpc.NewClient(fmt.Sprintf(":%s", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
     if err != nil {
         return nil, fmt.Errorf("failed to connect to server: %v", err)
     }
@@ -79,23 +80,25 @@ func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.Neighb
 }
 
 func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint float64) ([]utils.NeighbourInfo, error) {
-    responsesChan := make(chan []utils.NeighbourInfo, len(ports))
+    // create a buffered channel to store the responses from each server
+    responsesChan := make(chan []utils.NeighbourInfo, len(ports)) 
+    // create a wait group to help wait for all goroutines to finish
     var wg sync.WaitGroup
 
     for _, port := range ports {
-        wg.Add(1)
+        wg.Add(1) // increment the wait group counter
         go func(port string) {
-            defer wg.Done()
+            defer wg.Done() // decrement the wait group counter when the goroutine is done
             response, err := sendRequestToServer(port, dataPoint, numNearestNeighbours)
             if err != nil {
                 log.Printf("[warning] could not contact server on port %s: %v", port, err)
                 return
             }
-            responsesChan <- response
+            responsesChan <- response // send the response to the channel 
         }(port)
     }
 
-    // Close the channel when all goroutines are done
+    // wait for all goroutines to finish, then close the channel
     go func() {
         wg.Wait()
         close(responsesChan)

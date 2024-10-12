@@ -1,3 +1,2 @@
 - write assumptions (sequential launch and release of servers)
-- remove deprecations
 - a lot of names are bad, refactor 
