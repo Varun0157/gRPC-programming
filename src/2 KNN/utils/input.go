@@ -19,7 +19,6 @@ func IsFlagPassed(flagName string) bool {
 	return found
 }
 
-// readPortsFromFile reads port numbers from a given file
 func ReadPortsFromFile(filePath string) ([]string, error) {
     file, err := os.Open(filePath)
     if err != nil {

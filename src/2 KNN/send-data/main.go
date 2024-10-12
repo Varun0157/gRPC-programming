@@ -14,6 +14,7 @@ import (
 	utils "distsys/grpc-prog/knn/utils"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // read the floats from the file
@@ -59,7 +60,7 @@ func partitionData(ports []string, dataPoints []float64) error {
 	}
 
 	sendData := func (i int, port string) (int, int, error) {
-		conn, err := grpc.Dial(fmt.Sprintf(":%s", port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
+		conn, err := grpc.NewClient(fmt.Sprintf(":%s", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			return -1, -1, fmt.Errorf("failed to connect to server: %v", err)
 		}

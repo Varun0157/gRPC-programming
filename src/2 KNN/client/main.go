@@ -16,6 +16,7 @@ import (
 	utils "distsys/grpc-prog/knn/utils"
 )
 
+// merge the nearest neighbours from different servers to create a single list of nearest neighbours
 func mergeNearestNeighbours(nns [][]utils.NeighbourInfo, k int) []utils.NeighbourInfo {
 	if len(nns) == 0 {
 		return nil
@@ -48,7 +49,7 @@ func mergeNearestNeighbours(nns [][]utils.NeighbourInfo, k int) []utils.Neighbou
 	return result
 }
 
-// send a request to a specific server and return the neighbors
+// return the neighbours from a specific server
 func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.NeighbourInfo), error) {
     conn, err := grpc.NewClient(fmt.Sprintf(":%s", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
     if err != nil {
