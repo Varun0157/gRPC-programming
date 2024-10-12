@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# create the proto files 
+bash ./proto.sh
+
+# create the data 
+python create_data.py
+
 # number of servers to launch
 num_servers=1
 # The command you want to run in each terminal
