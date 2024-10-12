@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
@@ -77,24 +78,37 @@ func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.Neighb
     return neighbours, nil
 }
 
-// getKNearestNeighbors retrieves the k nearest neighbors from active servers
 func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint float64) ([]utils.NeighbourInfo, error) {
-    nnHeap := utils.NeighbourHeap{}
-    heap.Init(&nnHeap)
+    responsesChan := make(chan []utils.NeighbourInfo, len(ports))
+    var wg sync.WaitGroup
+
+    for _, port := range ports {
+        wg.Add(1)
+        go func(port string) {
+            defer wg.Done()
+            response, err := sendRequestToServer(port, dataPoint, numNearestNeighbours)
+            if err != nil {
+                log.Printf("[warning] could not contact server on port %s: %v", port, err)
+                return
+            }
+            responsesChan <- response
+        }(port)
+    }
+
+    // Close the channel when all goroutines are done
+    go func() {
+        wg.Wait()
+        close(responsesChan)
+    }()
 
     var responses [][]utils.NeighbourInfo
-    for _, port := range ports{
-        response, err := sendRequestToServer(port, dataPoint, numNearestNeighbours)
-        if err != nil {
-            log.Printf("[warning] could not contact server on port %s: %v", port, err)
-            continue 
-        }
-
+    for response := range responsesChan {
         responses = append(responses, response)
     }
 
     return mergeNearestNeighbours(responses, numNearestNeighbours), nil
 }
+
 
 func main() {
     portFilePath := flag.String("port_file", "active_servers.txt", "file to write active server ports to")
@@ -117,11 +131,15 @@ func main() {
     fmt.Println("enter the number of nearest neighbors to find: ")
     fmt.Scan(&numNearestNeighbors)
 
+    startTime := time.Now()
     nearest_neighbours, err := getKNearestNeighbors(ports, numNearestNeighbors, point)
+    endTime := time.Now()
     if err != nil {
         log.Fatalf("error getting nearest neighbors: %v", err)
     }
     for _, neighbour := range nearest_neighbours {
         fmt.Println(neighbour.DataPoint, "\t->\t", neighbour.Distance)
     }
+
+    fmt.Printf("time taken: %v\n", endTime.Sub(startTime))
 }
