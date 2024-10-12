@@ -47,9 +47,14 @@ func partitionData(ports []string, dataPoints []float64) error {
 	var NUM_SERVERS int = len(ports)	
 	var NUM_DATA_POINTS int = len(dataPoints)
 
+	var BASE_SIZE int = NUM_DATA_POINTS / NUM_SERVERS
+	var REMAINDER int = NUM_DATA_POINTS % NUM_SERVERS
+
 	getBounds := func (i int) (int, int) {
-		start := i * NUM_DATA_POINTS / NUM_SERVERS
-		end := (i + 1) * NUM_DATA_POINTS / NUM_SERVERS
+		var start int = i * BASE_SIZE + min(i, REMAINDER)
+		var clusterSize int = BASE_SIZE + min(1, REMAINDER)
+		var end int = start + clusterSize
+
 		return start, end
 	}
 
