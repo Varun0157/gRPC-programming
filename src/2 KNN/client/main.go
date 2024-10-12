@@ -14,6 +14,38 @@ import (
 	utils "distsys/grpc-prog/knn/utils"
 )
 
+func mergeNearestNeighbours(nns [][]utils.NeighbourInfo, k int) []utils.NeighbourInfo {
+	if len(nns) == 0 {
+		return nil
+	} else if len(nns) == 1 {
+		return nns[0]
+	}
+
+	// recursively merge the nearest neighbours
+	mid := len(nns) / 2
+	left := mergeNearestNeighbours(nns[:mid], k)
+	right := mergeNearestNeighbours(nns[mid:], k)
+
+	nnHeap := utils.NeighbourHeap{}
+	heap.Init(&nnHeap)
+
+	for _, neighbours := range [][]utils.NeighbourInfo{left, right} {
+		for _, nn := range neighbours {
+			heap.Push(&nnHeap, nn)
+			if nnHeap.Len() > k {
+				heap.Pop(&nnHeap)
+			}
+		}
+	}
+
+	var result []utils.NeighbourInfo
+	for nnHeap.Len() > 0 {
+		result = append(result, heap.Pop(&nnHeap).(utils.NeighbourInfo))
+	}
+
+	return result
+}
+
 // send a request to a specific server and return the neighbors
 func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.NeighbourInfo), error) {
     conn, err := grpc.Dial(fmt.Sprintf(":%s", port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
@@ -50,6 +82,7 @@ func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint fl
     nnHeap := utils.NeighbourHeap{}
     heap.Init(&nnHeap)
 
+    var responses [][]utils.NeighbourInfo
     for _, port := range ports{
         response, err := sendRequestToServer(port, dataPoint, numNearestNeighbours)
         if err != nil {
@@ -57,25 +90,11 @@ func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint fl
             continue 
         }
 
-        for _, neighbour := range response {
-            heap.Push(&nnHeap, neighbour)
-            if nnHeap.Len() > numNearestNeighbours {
-                heap.Pop(&nnHeap)
-            }
-        }
+        responses = append(responses, response)
     }
 
-    var results []utils.NeighbourInfo
-    for nnHeap.Len() > 0 {
-        neighbour := heap.Pop(&nnHeap).(utils.NeighbourInfo)
-        results = append(results, neighbour)
-    }
-
-    return results, nil
+    return mergeNearestNeighbours(responses, numNearestNeighbours), nil
 }
-
-
-
 
 func main() {
     portFilePath := flag.String("port_file", "active_servers.txt", "file to write active server ports to")

@@ -27,8 +27,6 @@ type server struct {
     dataset []float64
 }
 
-
-
 func (s *server) FindKNearestNeighbors(ctx context.Context, req *knn.KNNRequest) (*knn.KNNResponse, error) {
     nnHeap := utils.NeighbourHeap{}
 	heap.Init(&nnHeap)

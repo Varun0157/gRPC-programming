@@ -1,5 +1,3 @@
 - write assumptions (sequential launch and release of servers)
 - remove deprecations
 - a lot of names are bad, refactor 
-- use more optimal algo for partitioning
-- final knn can be even more efficient by using DnC maybe 
