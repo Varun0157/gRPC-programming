@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"context"
 	"flag"
 	"fmt"
@@ -13,23 +14,8 @@ import (
 	utils "distsys/grpc-prog/knn/utils"
 )
 
-// getKNearestNeighbors retrieves the k nearest neighbors from active servers
-func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint float64) ([]float64, error) {
-    var results []float64
-    for _, port := range ports{
-        response, err := sendRequestToServer(port, dataPoint, numNearestNeighbours)
-        if err != nil {
-            log.Printf("[warning] could not contact server on port %s: %v", port, err)
-            continue 
-        }
-        results = append(results, response...)
-    }
-
-    return results, nil
-}
-
 // send a request to a specific server and return the neighbors
-func sendRequestToServer(port string, dataPoint float64, k int) ([]float64, error) {
+func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.NeighbourInfo), error) {
     conn, err := grpc.Dial(fmt.Sprintf(":%s", port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
     if err != nil {
         return nil, fmt.Errorf("failed to connect to server: %v", err)
@@ -51,14 +37,44 @@ func sendRequestToServer(port string, dataPoint float64, k int) ([]float64, erro
         return nil, fmt.Errorf("error calling FindKNearestNeighbors: %v", err)
     }
 
-    // Extract distances from response
-    var neighbors []float64
-    for _, neighbor := range resp.Neighbors {
-        neighbors = append(neighbors, neighbor.DataPoint) // or neighbor.Distance based on your needs
+    var neighbours []utils.NeighbourInfo
+    for _, neighbour := range resp.Neighbours {
+        neighbours = append(neighbours, utils.NeighbourInfo{DataPoint: neighbour.DataPoint, Distance: neighbour.Distance})
     }
 
-    return neighbors, nil
+    return neighbours, nil
 }
+
+// getKNearestNeighbors retrieves the k nearest neighbors from active servers
+func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint float64) ([]utils.NeighbourInfo, error) {
+    nnHeap := utils.NeighbourHeap{}
+    heap.Init(&nnHeap)
+
+    for _, port := range ports{
+        response, err := sendRequestToServer(port, dataPoint, numNearestNeighbours)
+        if err != nil {
+            log.Printf("[warning] could not contact server on port %s: %v", port, err)
+            continue 
+        }
+
+        for _, neighbour := range response {
+            heap.Push(&nnHeap, neighbour)
+            if nnHeap.Len() > numNearestNeighbours {
+                heap.Pop(&nnHeap)
+            }
+        }
+    }
+
+    var results []utils.NeighbourInfo
+    for nnHeap.Len() > 0 {
+        neighbour := heap.Pop(&nnHeap).(utils.NeighbourInfo)
+        results = append(results, neighbour)
+    }
+
+    return results, nil
+}
+
+
 
 
 func main() {
@@ -87,6 +103,6 @@ func main() {
         log.Fatalf("error getting nearest neighbors: %v", err)
     }
     for _, neighbour := range nearest_neighbours {
-        fmt.Println(neighbour)
+        fmt.Println(neighbour.DataPoint, "\t->\t", neighbour.Distance)
     }
 }

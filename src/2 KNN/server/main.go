@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"context"
 	"fmt"
 	"log"
@@ -9,13 +10,13 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"sort"
 	"strconv"
 	"strings"
 	"syscall"
 
 	knn "distsys/grpc-prog/knn/knn"
 	data "distsys/grpc-prog/knn/partition"
+	utils "distsys/grpc-prog/knn/utils"
 
 	"google.golang.org/grpc"
 )
@@ -29,7 +30,8 @@ type server struct {
 
 
 func (s *server) FindKNearestNeighbors(ctx context.Context, req *knn.KNNRequest) (*knn.KNNResponse, error) {
-    var neighbors []*knn.Neighbor
+    nnHeap := utils.NeighbourHeap{}
+	heap.Init(&nnHeap)
 
 	euclidianDistance := func (a, b float64) float64 {
 		return math.Abs(a - b)
@@ -37,23 +39,24 @@ func (s *server) FindKNearestNeighbors(ctx context.Context, req *knn.KNNRequest)
 
     for _, dataPoint := range s.dataset {
         distance := euclidianDistance(req.DataPoint, dataPoint)
-        neighbors = append(neighbors, &knn.Neighbor{DataPoint: dataPoint, Distance: distance})
+        heap.Push(&nnHeap, utils.NeighbourInfo{DataPoint: dataPoint, Distance: distance})
+		if nnHeap.Len() > int(req.K) {
+			heap.Pop(&nnHeap)
+		}
     }
 
-    // sort neighbours and select top k (inefficient, works for now)
-    sort.Slice(neighbors, func(i, j int) bool {
-        return neighbors[i].Distance < neighbors[j].Distance
-    })
+	var neighbours []*knn.Neighbour
+	for nnHeap.Len() > 0 {
+		neighbour := heap.Pop(&nnHeap).(utils.NeighbourInfo)
+		neighbours = append(neighbours, &knn.Neighbour{DataPoint: neighbour.DataPoint, Distance: neighbour.Distance})
+	}
 
-    if len(neighbors) > int(req.K) {
-        neighbors = neighbors[:req.K]
-    }
-
-    return &knn.KNNResponse{Neighbors: neighbors}, nil
+	return &knn.KNNResponse{Neighbours: neighbours}, nil
 }
 
 func (s *server) StoreData(ctx context.Context, req *data.DataRequest) (*data.DataResponse, error) {
 	s.dataset = req.Data
+	log.Println("data received")
 	return &data.DataResponse{Success: true}, nil
 }
 

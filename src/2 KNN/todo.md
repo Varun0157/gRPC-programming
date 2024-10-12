@@ -2,5 +2,4 @@
 - remove deprecations
 - a lot of names are bad, refactor 
 - use more optimal algo for partitioning
-- use more optimal algo for knn
-- consider showing datapoint and distance
+- final knn can be even more efficient by using DnC maybe 
