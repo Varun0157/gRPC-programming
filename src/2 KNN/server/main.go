@@ -22,26 +22,26 @@ import (
 )
 
 type server struct {
-    knn.UnimplementedKNNServiceServer
+	knn.UnimplementedKNNServiceServer
 	data.UnimplementedDataServiceServer
-    dataset []float64
+	dataset []float64
 }
 
 func (s *server) FindKNearestNeighbors(ctx context.Context, req *knn.KNNRequest) (*knn.KNNResponse, error) {
-    nnHeap := utils.NeighbourHeap{}
+	nnHeap := utils.NeighbourHeap{}
 	heap.Init(&nnHeap)
 
-	euclidianDistance := func (a, b float64) float64 {
+	euclidianDistance := func(a, b float64) float64 {
 		return math.Abs(a - b)
 	}
 
-    for _, dataPoint := range s.dataset {
-        distance := euclidianDistance(req.DataPoint, dataPoint)
-        heap.Push(&nnHeap, utils.NeighbourInfo{DataPoint: dataPoint, Distance: distance})
+	for _, dataPoint := range s.dataset {
+		distance := euclidianDistance(req.DataPoint, dataPoint)
+		heap.Push(&nnHeap, utils.NeighbourInfo{DataPoint: dataPoint, Distance: distance})
 		if nnHeap.Len() > int(req.K) {
 			heap.Pop(&nnHeap)
 		}
-    }
+	}
 
 	var neighbours []*knn.Neighbour
 	for nnHeap.Len() > 0 {
@@ -59,23 +59,23 @@ func (s *server) StoreData(ctx context.Context, req *data.DataRequest) (*data.Da
 }
 
 func listenOnPort() (lis net.Listener, port int, err error) {
-    for {
-        port = rand.Intn(65535 - 1024) + 1024
-        lis, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
-        if err == nil {
-            break 
-        }
+	for {
+		port = rand.Intn(65535-1024) + 1024
+		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
+		if err == nil {
+			break
+		}
 
-        log.Printf("failed to listen on port %d: %v", port, err)
-    }
+		log.Printf("failed to listen on port %d: %v", port, err)
+	}
 
-    return lis, port, nil
+	return lis, port, nil
 }
 
 func appendPortToFile(port int, portFilePath string) error {
 	file, err := os.OpenFile(portFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
-		return err 
+		return err
 	}
 
 	defer file.Close()
@@ -85,7 +85,7 @@ func appendPortToFile(port int, portFilePath string) error {
 }
 
 func removePortFromFile(port int, portFilePath string) error {
-    content, err := os.ReadFile(portFilePath)
+	content, err := os.ReadFile(portFilePath)
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func LaunchServer(portFilePath string) {
 	grpcServer := grpc.NewServer()
 	server := server{}
 	data.RegisterDataServiceServer(grpcServer, &server)
-	knn.RegisterKNNServiceServer(grpcServer, &server) 
+	knn.RegisterKNNServiceServer(grpcServer, &server)
 	log.Printf("server registered...")
 
 	// terminate on ^C

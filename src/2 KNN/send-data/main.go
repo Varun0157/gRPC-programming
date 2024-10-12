@@ -42,24 +42,23 @@ func readDataFromFile(filePath string) ([]float64, error) {
 	return data, nil
 }
 
-
-// partition the data across the files 
+// partition the data across the files
 func partitionData(ports []string, dataPoints []float64) error {
-	var NUM_SERVERS int = len(ports)	
+	var NUM_SERVERS int = len(ports)
 	var NUM_DATA_POINTS int = len(dataPoints)
 
 	var BASE_SIZE int = NUM_DATA_POINTS / NUM_SERVERS
 	var REMAINDER int = NUM_DATA_POINTS % NUM_SERVERS
 
-	getBounds := func (i int) (int, int) {
-		var start int = i * BASE_SIZE + min(i, REMAINDER)
+	getBounds := func(i int) (int, int) {
+		var start int = i*BASE_SIZE + min(i, REMAINDER)
 		var clusterSize int = BASE_SIZE + min(1, REMAINDER)
 		var end int = start + clusterSize
 
 		return start, end
 	}
 
-	sendData := func (i int, port string) (int, int, error) {
+	sendData := func(i int, port string) (int, int, error) {
 		conn, err := grpc.NewClient(fmt.Sprintf(":%s", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			return -1, -1, fmt.Errorf("failed to connect to server: %v", err)
@@ -78,10 +77,10 @@ func partitionData(ports []string, dataPoints []float64) error {
 
 		resp, err := client.StoreData(ctx, req)
 		if err != nil || !resp.Success {
-			return -1,-1, fmt.Errorf("error sending data to port %s: %v", port, err)
+			return -1, -1, fmt.Errorf("error sending data to port %s: %v", port, err)
 		}
 
-		return start, end , nil
+		return start, end, nil
 	}
 
 	for i, port := range ports {
