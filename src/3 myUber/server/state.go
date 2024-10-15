@@ -33,6 +33,26 @@ var (
 	assignMutex sync.Mutex
 )
 
+func RequestsPresent() bool {
+	rideMutex.Lock()
+	defer rideMutex.Unlock()
+
+	return len(toAssign) > 0
+}
+
+func ReassignRide(rideID int) {
+	rideMutex.Lock()
+	defer rideMutex.Unlock()
+
+	assignMutex.Lock()
+	defer assignMutex.Unlock()
+
+	ride := Rides[rideID]
+	ride.status = WAITING
+	Rides[rideID] = ride
+
+	toAssign = append(toAssign, rideID)
+}
 
 func AddRideRequest(req *comm.RideRequest) int {
 	details := RideDetails{
@@ -59,13 +79,25 @@ func AddRideRequest(req *comm.RideRequest) int {
 	return rideID
 }
 
-func GetTopRequest() (int, RideDetails) {	
+func GetRideStatus(rideID int) string {
+	rideMutex.Lock()
+	defer rideMutex.Unlock()
+
+	return Rides[rideID].status
+}
+
+func GetTopRequest() (int, RideDetails) {
 	rideMutex.Lock()
 	defer rideMutex.Unlock()
 
 	assignMutex.Lock()
 	defer assignMutex.Unlock()
 	
+	// if no requests present, return -1
+	if !RequestsPresent() {
+		return -1, RideDetails{}
+	}
+
 	// pop from queue
 	rideID := toAssign[0]
 	toAssign = toAssign[1:]

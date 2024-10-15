@@ -41,7 +41,6 @@ message DriverAssignmentRequest {
 
 message DriverAssignmentResponse {
     int32 ride_id = 1;
-    bool success = 2;
 }
 
 message DriverAcceptRequest {
