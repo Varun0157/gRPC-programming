@@ -2,9 +2,15 @@ package main
 
 import (
 	"context"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	comm "distsys/grpc-prog/myuber/comm"
 	"time"
+
+	"google.golang.org/grpc"
 )	
 
 type server struct {
@@ -84,4 +90,48 @@ func (s* server) CompleteRide(ctx context.Context, req* comm.DriverCompleteReque
 	CompleteRide(rideId)
 
 	return &comm.DriverCompleteResponse{Success: true}, nil
+}
+
+func LaunchServer(portFilePath string) {
+	lis, port, nil := listenOnPort()
+	log.Printf("server listening on port %d", port)
+
+	if err := appendPortToFile(port, portFilePath); err != nil {
+		log.Fatalf("failed to append port to file: %v", err)
+	}
+
+	s := grpc.NewServer()
+	comm.RegisterRiderServiceServer(s, &server{})
+	comm.RegisterDriverServiceServer(s, &server{})
+
+	// terminate on ^C
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			log.Fatalf("failed to serve: %v", err)
+		}
+	}()
+
+	<-stop
+
+	log.Println("shutting down server...")
+	s.GracefulStop()
+
+	if err := removePortFromFile(port, portFilePath); err != nil {
+		log.Printf("failed to remove port from file: %v", err)
+	} else {
+		log.Printf("port removed from %s", portFilePath)
+	}
+
+	log.Println("Server shut down")
+}
+
+func main() {
+	// if len(os.Args) != 2 {
+	// 	log.Fatalf("usage: %s <port_file_path>", os.Args[0])
+	// }
+	portFilePath := "../active_servers.txt"
+	LaunchServer(portFilePath)
 }
