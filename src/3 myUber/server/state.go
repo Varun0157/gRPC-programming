@@ -2,6 +2,7 @@ package main
 
 import (
 	comm "distsys/grpc-prog/myuber/comm"
+	"fmt"
 	"sync"
 )
 
@@ -32,27 +33,6 @@ var (
 	toAssign = make([]int, 0)
 	assignMutex sync.Mutex
 )
-
-func RequestsPresent() bool {
-	rideMutex.Lock()
-	defer rideMutex.Unlock()
-
-	return len(toAssign) > 0
-}
-
-func ReassignRide(rideID int) {
-	rideMutex.Lock()
-	defer rideMutex.Unlock()
-
-	assignMutex.Lock()
-	defer assignMutex.Unlock()
-
-	ride := Rides[rideID]
-	ride.status = WAITING
-	Rides[rideID] = ride
-
-	toAssign = append(toAssign, rideID)
-}
 
 func AddRideRequest(req *comm.RideRequest) int {
 	details := RideDetails{
@@ -90,11 +70,15 @@ func GetTopRequest() (int, RideDetails) {
 	rideMutex.Lock()
 	defer rideMutex.Unlock()
 
+	fmt.Println("Here")
+
 	assignMutex.Lock()
 	defer assignMutex.Unlock()
 	
+	fmt.Println("here")
+
 	// if no requests present, return -1
-	if !RequestsPresent() {
+	if len(toAssign) < 1 {
 		return -1, RideDetails{}
 	}
 
@@ -142,6 +126,20 @@ func RejectRide(rideID int) {
 	}
 	
 	Rides[rideID] = ride
+}
+
+func TimeoutRide(rideID int) {
+	rideMutex.Lock()
+	defer rideMutex.Unlock()
+
+	assignMutex.Lock()
+	defer assignMutex.Unlock()
+
+	ride := Rides[rideID]
+	ride.status = WAITING
+	Rides[rideID] = ride
+
+	toAssign = append(toAssign, rideID)
 }
 
 func CompleteRide(rideID int) {

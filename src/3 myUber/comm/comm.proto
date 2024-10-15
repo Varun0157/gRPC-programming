@@ -29,10 +29,11 @@ message RideStatusResponse {
 
 // Driver APIs
 service DriverService {
-    rpc AssignDriver(DriverAssignmentRequest) returns (stream DriverAssignmentResponse);
+    rpc AssignDriver(DriverAssignmentRequest) returns (DriverAssignmentResponse);
     rpc CompleteRideRequest(DriverCompleteRequest) returns (DriverCompleteResponse);
     rpc AcceptRideRequest(DriverAcceptRequest) returns (DriverAcceptResponse);
     rpc RejectRideRequest(DriverRejectRequest) returns (DriverRejectResponse);
+    rpc TimeoutRideRequest(DriverTimeoutRequest) returns (DriverTimeoutResponse);
 }
 
 message DriverAssignmentRequest {
@@ -65,6 +66,14 @@ message DriverCompleteRequest {
 }
 
 message DriverCompleteResponse {
+    bool success = 1;
+}
+
+message DriverTimeoutRequest {
+    int32 ride_id = 1;
+}
+
+message DriverTimeoutResponse {
     bool success = 1;
 }
 

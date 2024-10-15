@@ -167,6 +167,7 @@ const (
 	DriverService_CompleteRideRequest_FullMethodName = "/comm.DriverService/CompleteRideRequest"
 	DriverService_AcceptRideRequest_FullMethodName   = "/comm.DriverService/AcceptRideRequest"
 	DriverService_RejectRideRequest_FullMethodName   = "/comm.DriverService/RejectRideRequest"
+	DriverService_TimeoutRideRequest_FullMethodName  = "/comm.DriverService/TimeoutRideRequest"
 )
 
 // DriverServiceClient is the client API for DriverService service.
@@ -175,10 +176,11 @@ const (
 //
 // Driver APIs
 type DriverServiceClient interface {
-	AssignDriver(ctx context.Context, in *DriverAssignmentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DriverAssignmentResponse], error)
+	AssignDriver(ctx context.Context, in *DriverAssignmentRequest, opts ...grpc.CallOption) (*DriverAssignmentResponse, error)
 	CompleteRideRequest(ctx context.Context, in *DriverCompleteRequest, opts ...grpc.CallOption) (*DriverCompleteResponse, error)
 	AcceptRideRequest(ctx context.Context, in *DriverAcceptRequest, opts ...grpc.CallOption) (*DriverAcceptResponse, error)
 	RejectRideRequest(ctx context.Context, in *DriverRejectRequest, opts ...grpc.CallOption) (*DriverRejectResponse, error)
+	TimeoutRideRequest(ctx context.Context, in *DriverTimeoutRequest, opts ...grpc.CallOption) (*DriverTimeoutResponse, error)
 }
 
 type driverServiceClient struct {
@@ -189,24 +191,15 @@ func NewDriverServiceClient(cc grpc.ClientConnInterface) DriverServiceClient {
 	return &driverServiceClient{cc}
 }
 
-func (c *driverServiceClient) AssignDriver(ctx context.Context, in *DriverAssignmentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DriverAssignmentResponse], error) {
+func (c *driverServiceClient) AssignDriver(ctx context.Context, in *DriverAssignmentRequest, opts ...grpc.CallOption) (*DriverAssignmentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &DriverService_ServiceDesc.Streams[0], DriverService_AssignDriver_FullMethodName, cOpts...)
+	out := new(DriverAssignmentResponse)
+	err := c.cc.Invoke(ctx, DriverService_AssignDriver_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[DriverAssignmentRequest, DriverAssignmentResponse]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
+	return out, nil
 }
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type DriverService_AssignDriverClient = grpc.ServerStreamingClient[DriverAssignmentResponse]
 
 func (c *driverServiceClient) CompleteRideRequest(ctx context.Context, in *DriverCompleteRequest, opts ...grpc.CallOption) (*DriverCompleteResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -238,16 +231,27 @@ func (c *driverServiceClient) RejectRideRequest(ctx context.Context, in *DriverR
 	return out, nil
 }
 
+func (c *driverServiceClient) TimeoutRideRequest(ctx context.Context, in *DriverTimeoutRequest, opts ...grpc.CallOption) (*DriverTimeoutResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DriverTimeoutResponse)
+	err := c.cc.Invoke(ctx, DriverService_TimeoutRideRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DriverServiceServer is the server API for DriverService service.
 // All implementations must embed UnimplementedDriverServiceServer
 // for forward compatibility.
 //
 // Driver APIs
 type DriverServiceServer interface {
-	AssignDriver(*DriverAssignmentRequest, grpc.ServerStreamingServer[DriverAssignmentResponse]) error
+	AssignDriver(context.Context, *DriverAssignmentRequest) (*DriverAssignmentResponse, error)
 	CompleteRideRequest(context.Context, *DriverCompleteRequest) (*DriverCompleteResponse, error)
 	AcceptRideRequest(context.Context, *DriverAcceptRequest) (*DriverAcceptResponse, error)
 	RejectRideRequest(context.Context, *DriverRejectRequest) (*DriverRejectResponse, error)
+	TimeoutRideRequest(context.Context, *DriverTimeoutRequest) (*DriverTimeoutResponse, error)
 	mustEmbedUnimplementedDriverServiceServer()
 }
 
@@ -258,8 +262,8 @@ type DriverServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedDriverServiceServer struct{}
 
-func (UnimplementedDriverServiceServer) AssignDriver(*DriverAssignmentRequest, grpc.ServerStreamingServer[DriverAssignmentResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method AssignDriver not implemented")
+func (UnimplementedDriverServiceServer) AssignDriver(context.Context, *DriverAssignmentRequest) (*DriverAssignmentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssignDriver not implemented")
 }
 func (UnimplementedDriverServiceServer) CompleteRideRequest(context.Context, *DriverCompleteRequest) (*DriverCompleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CompleteRideRequest not implemented")
@@ -269,6 +273,9 @@ func (UnimplementedDriverServiceServer) AcceptRideRequest(context.Context, *Driv
 }
 func (UnimplementedDriverServiceServer) RejectRideRequest(context.Context, *DriverRejectRequest) (*DriverRejectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RejectRideRequest not implemented")
+}
+func (UnimplementedDriverServiceServer) TimeoutRideRequest(context.Context, *DriverTimeoutRequest) (*DriverTimeoutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TimeoutRideRequest not implemented")
 }
 func (UnimplementedDriverServiceServer) mustEmbedUnimplementedDriverServiceServer() {}
 func (UnimplementedDriverServiceServer) testEmbeddedByValue()                       {}
@@ -291,16 +298,23 @@ func RegisterDriverServiceServer(s grpc.ServiceRegistrar, srv DriverServiceServe
 	s.RegisterService(&DriverService_ServiceDesc, srv)
 }
 
-func _DriverService_AssignDriver_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(DriverAssignmentRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _DriverService_AssignDriver_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DriverAssignmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(DriverServiceServer).AssignDriver(m, &grpc.GenericServerStream[DriverAssignmentRequest, DriverAssignmentResponse]{ServerStream: stream})
+	if interceptor == nil {
+		return srv.(DriverServiceServer).AssignDriver(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DriverService_AssignDriver_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServiceServer).AssignDriver(ctx, req.(*DriverAssignmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type DriverService_AssignDriverServer = grpc.ServerStreamingServer[DriverAssignmentResponse]
 
 func _DriverService_CompleteRideRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DriverCompleteRequest)
@@ -356,6 +370,24 @@ func _DriverService_RejectRideRequest_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DriverService_TimeoutRideRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DriverTimeoutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DriverServiceServer).TimeoutRideRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DriverService_TimeoutRideRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DriverServiceServer).TimeoutRideRequest(ctx, req.(*DriverTimeoutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DriverService_ServiceDesc is the grpc.ServiceDesc for DriverService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -363,6 +395,10 @@ var DriverService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "comm.DriverService",
 	HandlerType: (*DriverServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AssignDriver",
+			Handler:    _DriverService_AssignDriver_Handler,
+		},
 		{
 			MethodName: "CompleteRideRequest",
 			Handler:    _DriverService_CompleteRideRequest_Handler,
@@ -375,13 +411,11 @@ var DriverService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "RejectRideRequest",
 			Handler:    _DriverService_RejectRideRequest_Handler,
 		},
-	},
-	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "AssignDriver",
-			Handler:       _DriverService_AssignDriver_Handler,
-			ServerStreams: true,
+			MethodName: "TimeoutRideRequest",
+			Handler:    _DriverService_TimeoutRideRequest_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "comm/comm.proto",
 }

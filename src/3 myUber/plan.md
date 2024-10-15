@@ -22,14 +22,32 @@ Maintain some data structures:
 	- if in *completed* send 'ride complete'
 	- else, send 'cancelled'
 #### Drivers
-- **RequestAssignment(RideAssignmentRequest)**: pop from queue, send ride request, add state to *request_sent*. 
-  - if timeout reached, send 'time out reached message', remove from *request_sent*, add to *to_assign*
+- **SendRideDetails(RideAssignmentRequest)**: pop from queue, send ride request, add state to *request_sent*. 
+  - client handles the rest
 - **AcceptRide(AcceptRideRequest)**: 
 	- if not in *request_sent*, unexpected err, driver cannot take ride 
 	- remove from *request_sent*, add to *on_going*, driver can take ride 
 - **RejectRide(RejectRideRequest)**:
 	- if not in request_sent, unexpected err
 	- remove from *request_sent*, push to *to_assign*, increment rejection count of request
+- **DriverHitTimeout(TimeoutRideRequest)**:
+  - inform the server that it has to reassign that request. 
 - **CompleteRide(CompleteRideRequest)**:
 	- if not in *on_going*, err
 	- remove from *on_going*, consider adding to complete set 
+
+## Client 
+### Rider
+- get name, source, location or set random
+- RequestRide
+- display ride id 
+- allow display of status on command
+- return 
+
+### Driver
+- get driver name, request assignment 
+- on getting details, display, prompt choice
+- make a goroutine that waits for further messages, if you get -2 then you took too long, terminate 
+- send accept or reject
+  - if accept, only allow to mark completion of ride
+  - if reject, request another assignment 
