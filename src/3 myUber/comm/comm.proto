@@ -1,0 +1,71 @@
+syntax = "proto3";
+option go_package = "distsys/grpc-prog/myuber/comm";
+package comm;
+
+// Rider APIs
+service RiderService {
+    rpc RequestRide(RideRequest) returns (RideResponse);
+    rpc GetStatus(RideStatusRequest) returns (RideStatusResponse);
+}
+
+message RideRequest {
+    string rider = 1;
+    string start_location = 2;
+    string end_location = 3;
+}
+
+message RideResponse {
+    int32 ride_id = 1;
+    bool success = 2;
+}
+
+message RideStatusRequest {
+    int32 ride_id = 1;
+}
+
+message RideStatusResponse {
+    string status = 1;
+}
+
+// Driver APIs
+service DriverService {
+    rpc AssignDriver(DriverAssignmentRequest) returns (stream DriverAssignmentResponse);
+    rpc CompleteRideRequest(DriverCompleteRequest) returns (DriverCompleteResponse);
+    rpc AcceptRideRequest(DriverAcceptRequest) returns (DriverAcceptResponse);
+    rpc RejectRideRequest(DriverRejectRequest) returns (DriverRejectResponse);
+}
+
+message DriverAssignmentRequest {
+    string driver = 1;
+}
+
+message DriverAssignmentResponse {
+    int32 ride_id = 1;
+    bool success = 2;
+}
+
+message DriverAcceptRequest {
+    int32 ride_id = 1;
+    string driver = 2;
+}
+
+message DriverAcceptResponse {
+    bool success = 1;
+}
+
+message DriverRejectRequest {
+    int32 ride_id = 1;
+}
+
+message DriverRejectResponse {
+    bool success = 1;
+}
+
+message DriverCompleteRequest {
+    int32 ride_id = 1;
+}
+
+message DriverCompleteResponse {
+    bool success = 1;
+}
+
