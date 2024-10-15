@@ -11,7 +11,7 @@ import (
 	comm "distsys/grpc-prog/myuber/comm"
 
 	"google.golang.org/grpc"
-)	
+)
 
 type server struct {
 	comm.UnimplementedRiderServiceServer
@@ -28,34 +28,34 @@ func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*c
 	return &comm.RideStatusResponse{Status: status}, nil
 }
 
-func (s* server) AssignDriver(ctx context.Context, req* comm.DriverAssignmentRequest) (*comm.DriverAssignmentResponse, error) {
+func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentRequest) (*comm.DriverAssignmentResponse, error) {
 	fmt.Println("assigning")
 	ride_id, _ := GetTopRequest()
 	fmt.Println("ride_id: ", ride_id)
 	return &comm.DriverAssignmentResponse{RideId: int32(ride_id)}, nil
 }
 
-func (s* server) AcceptRideRequest(ctx context.Context, req* comm.DriverAcceptRequest) (*comm.DriverAcceptResponse, error) {
+func (s *server) AcceptRideRequest(ctx context.Context, req *comm.DriverAcceptRequest) (*comm.DriverAcceptResponse, error) {
 	AcceptRide(int(req.RideId), req.Driver)
 
 	return &comm.DriverAcceptResponse{Success: true}, nil
 }
 
-func (s* server) RejectRideRequest(ctx context.Context, req* comm.DriverRejectRequest) (*comm.DriverRejectResponse, error) {
+func (s *server) RejectRideRequest(ctx context.Context, req *comm.DriverRejectRequest) (*comm.DriverRejectResponse, error) {
 	rideId := int(req.RideId)
 	RejectRide(rideId)
 
 	return &comm.DriverRejectResponse{Success: true}, nil
 }
 
-func (s* server) TimeoutRideRequest(ctx context.Context, req* comm.DriverTimeoutRequest) (*comm.DriverTimeoutResponse, error) {
+func (s *server) TimeoutRideRequest(ctx context.Context, req *comm.DriverTimeoutRequest) (*comm.DriverTimeoutResponse, error) {
 	rideId := int(req.RideId)
 	TimeoutRide(rideId)
 
 	return &comm.DriverTimeoutResponse{Success: true}, nil
 }
 
-func (s* server) CompleteRideRequest(ctx context.Context, req* comm.DriverCompleteRequest) (*comm.DriverCompleteResponse, error) {
+func (s *server) CompleteRideRequest(ctx context.Context, req *comm.DriverCompleteRequest) (*comm.DriverCompleteResponse, error) {
 	rideId := int(req.RideId)
 	CompleteRide(rideId)
 

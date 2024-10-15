@@ -33,12 +33,12 @@ func connectRider(port int) error {
 	client := comm.NewRiderServiceClient(conn)
 	name, source, dest := getRiderDetails()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	rideResponse, err := client.RequestRide(ctx, &comm.RideRequest{
-		Rider: name,
+		Rider:         name,
 		StartLocation: source,
-		EndLocation: dest,
-	})	
+		EndLocation:   dest,
+	})
 	cancel()
 
 	if err != nil {
@@ -48,7 +48,7 @@ func connectRider(port int) error {
 	for {
 		// allow the rider to keep getting ride status, or exit this ride tracking entirely (break condition)
 		fmt.Println(rideResponse.RideId)
-		
+
 		var choice string
 		fmt.Println("Do you want to check the status of your ride? (y/n)")
 		fmt.Scan(&choice)
@@ -56,20 +56,20 @@ func connectRider(port int) error {
 		if choice == "n" {
 			break
 		}
-		
+
 		fmt.Println("Checking ride status... ")
-		ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		statusResponse, err := client.GetStatus(ctx, &comm.RideStatusRequest{
 			RideId: int32(rideResponse.RideId),
 		})
 		cancel()
-		
+
 		if err != nil {
 			return fmt.Errorf("failed to get ride status: %v", err)
 		}
-		
+
 		fmt.Printf("Ride status: %s\n", statusResponse.Status)
 	}
 
-	return nil 
+	return nil
 }

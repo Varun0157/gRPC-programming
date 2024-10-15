@@ -27,28 +27,25 @@ func connectDriver(port int) error {
 
 	client := comm.NewDriverServiceClient(conn)
 	name := getDriverDetails()
-	fmt.Println("name: ", name)
 
 	for {
-		fmt.Println("assigning driver")
-		ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		rideResponse, err := client.AssignDriver(ctx, &comm.DriverAssignmentRequest{
-				Driver: name,
-		})	
+			Driver: name,
+		})
 		cancel()
-		
+
 		if err != nil {
 			return fmt.Errorf("failed to assign driver: %v", err)
 		}
 		fmt.Println(rideResponse.RideId)
-		
-		
+
 		var choice string
 		fmt.Println("Do you want to accept or reject ride? (a/r)")
 		fmt.Scan(&choice)
 
 		if choice == "r" {
-			ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			_, err := client.RejectRideRequest(ctx, &comm.DriverRejectRequest{
 				RideId: int32(rideResponse.RideId),
 			})
@@ -57,10 +54,10 @@ func connectDriver(port int) error {
 				return fmt.Errorf("failed to reject ride: %v", err)
 			}
 
-			continue 
-		} 
+			continue
+		}
 
-		ctx, cancel = context.WithTimeout(context.Background(), 10 * time.Second)
+		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 		_, err = client.AcceptRideRequest(ctx, &comm.DriverAcceptRequest{
 			RideId: int32(rideResponse.RideId),
 			Driver: name,
@@ -70,9 +67,9 @@ func connectDriver(port int) error {
 			return fmt.Errorf("failed to accept ride: %v", err)
 		}
 
-		fmt.Println("Press enter to complete ride")
+		fmt.Println("Press anything to complete ride")
 		fmt.Scan(&choice)
-		ctx, cancel = context.WithTimeout(context.Background(), 10 * time.Second)
+		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 		_, err = client.CompleteRideRequest(ctx, &comm.DriverCompleteRequest{
 			RideId: int32(rideResponse.RideId),
 		})
@@ -80,7 +77,7 @@ func connectDriver(port int) error {
 		if err != nil {
 			return fmt.Errorf("failed to complete ride: %v", err)
 		}
-		break 
+		break
 	}
 	return nil
 }

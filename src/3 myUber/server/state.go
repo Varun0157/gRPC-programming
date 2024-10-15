@@ -2,14 +2,13 @@ package main
 
 import (
 	comm "distsys/grpc-prog/myuber/comm"
-	"fmt"
 	"sync"
 )
 
 const (
-	WAITING = "PENDING"
-	ASSIGNED = "ASSIGNED"
-	ACCEPTED = "ACCEPTED"
+	WAITING   = "PENDING"
+	ASSIGNED  = "ASSIGNED"
+	ACCEPTED  = "ACCEPTED"
 	COMPLETED = "COMPLETED"
 	CANCELLED = "CANCELLED"
 )
@@ -24,13 +23,13 @@ type RideDetails struct {
 	startLocation string
 	endLocation   string
 	status        string
-	numRejections int 
+	numRejections int
 }
 
 var (
-	Rides = make(map[int]RideDetails)
-	rideMutex sync.Mutex
-	toAssign = make([]int, 0)
+	Rides       = make(map[int]RideDetails)
+	rideMutex   sync.Mutex
+	toAssign    = make([]int, 0)
 	assignMutex sync.Mutex
 )
 
@@ -70,12 +69,8 @@ func GetTopRequest() (int, RideDetails) {
 	rideMutex.Lock()
 	defer rideMutex.Unlock()
 
-	fmt.Println("Here")
-
 	assignMutex.Lock()
 	defer assignMutex.Unlock()
-	
-	fmt.Println("here")
 
 	// if no requests present, return -1
 	if len(toAssign) < 1 {
@@ -90,7 +85,7 @@ func GetTopRequest() (int, RideDetails) {
 	ride := Rides[rideID]
 	ride.status = ASSIGNED
 	Rides[rideID] = ride
-	
+
 	return rideID, Rides[rideID]
 }
 
@@ -102,7 +97,7 @@ func AcceptRide(rideID int, driver string) {
 	ride := Rides[rideID]
 	ride.driver = driver
 	ride.status = ACCEPTED
-	
+
 	Rides[rideID] = ride
 }
 
@@ -113,18 +108,18 @@ func RejectRide(rideID int) {
 	// increment the number of rejections
 	ride := Rides[rideID]
 	ride.numRejections++
-	
+
 	// if the number of rejections exceeds the limit, cancel the ride
 	if ride.numRejections >= MAX_REJECTIONS {
 		ride.status = CANCELLED
 	} else {
-		ride.status = WAITING	
-		
+		ride.status = WAITING
+
 		assignMutex.Lock()
 		toAssign = append(toAssign, rideID)
 		assignMutex.Unlock()
 	}
-	
+
 	Rides[rideID] = ride
 }
 
@@ -149,6 +144,6 @@ func CompleteRide(rideID int) {
 	// set ride status to completed
 	ride := Rides[rideID]
 	ride.status = COMPLETED
-	
+
 	Rides[rideID] = ride
 }
