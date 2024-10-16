@@ -70,7 +70,7 @@ func LaunchServer(portFilePath string) {
 		log.Fatalf("failed to append port to file: %v", err)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.UnaryInterceptor(UnaryLoggingInterceptor))
 	comm.RegisterRiderServiceServer(s, &server{})
 	comm.RegisterDriverServiceServer(s, &server{})
 

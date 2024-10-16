@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -16,13 +17,6 @@ import (
 
 func getRequestTimeout() time.Duration {
 	return 10 * time.Second
-}
-
-func getDriverDetails() (name string) {
-	fmt.Println("Enter your name: ")
-	fmt.Scan(&name)
-
-	return name
 }
 
 func rejectRide(client comm.DriverServiceClient, rideId int) error {
@@ -51,7 +45,7 @@ func acceptRide(client comm.DriverServiceClient, rideId int, name string) error 
 		return fmt.Errorf("failed to accept ride: %v", err)
 	}
 
-	return nil 
+	return nil
 }
 
 func completeRide(client comm.DriverServiceClient, rideId int) error {
@@ -65,7 +59,7 @@ func completeRide(client comm.DriverServiceClient, rideId int) error {
 		return fmt.Errorf("failed to complete ride: %v", err)
 	}
 
-	return err 
+	return err
 }
 
 func timeoutHit(client comm.DriverServiceClient, rideId int) error {
@@ -84,7 +78,7 @@ func timeoutHit(client comm.DriverServiceClient, rideId int) error {
 
 const WAIT_TIME = 10
 
-func connectDriver(port int) error {
+func connectDriver(name string, port int) error {
 	conn, err := grpc.NewClient(fmt.Sprintf(":%d", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return fmt.Errorf("failed to connect to server: %v", err)
@@ -92,7 +86,6 @@ func connectDriver(port int) error {
 	defer conn.Close()
 
 	client := comm.NewDriverServiceClient(conn)
-	name := getDriverDetails()
 
 	for {
 		ctx, cancel := context.WithTimeout(context.Background(), getRequestTimeout())
@@ -105,11 +98,14 @@ func connectDriver(port int) error {
 			return fmt.Errorf("failed to assign driver: %v", err)
 		}
 		fmt.Println(rideResponse.RideId)
+		if (rideResponse.RideId < 0) {
+			log.Println("no pending ride requests on server, try again later")
+			break 
+		}
 
 		var choice string
-		
-		ctx, cancel = context.WithTimeout(context.Background(), WAIT_TIME * time.Second)
-		defer cancel()
+
+		ctx, cancel = context.WithTimeout(context.Background(), WAIT_TIME*time.Second)
 		inputChan := make(chan string)
 
 		go func() {
@@ -125,13 +121,17 @@ func connectDriver(port int) error {
 
 		select {
 		case choice = <-inputChan:
+			cancel()
+
 		case <-ctx.Done():
 			err = timeoutHit(client, int(rideResponse.RideId))
+			cancel()
 			if err != nil {
 				return err
 			}
 			continue
 		}
+
 
 		choice = strings.Trim(choice, "\n")
 		if choice == "r" {

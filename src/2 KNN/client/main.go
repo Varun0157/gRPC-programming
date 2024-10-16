@@ -64,7 +64,7 @@ func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.Neighb
 		K:         int32(k),
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	resp, err := client.FindKNearestNeighbors(ctx, req)
