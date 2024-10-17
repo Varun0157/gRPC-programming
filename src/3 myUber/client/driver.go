@@ -98,25 +98,22 @@ func connectDriver(name string, port int) error {
 			return fmt.Errorf("failed to assign driver: %v", err)
 		}
 		fmt.Println(rideResponse.RideId)
-		if (rideResponse.RideId < 0) {
+		if rideResponse.RideId < 0 {
 			log.Println("no pending ride requests on server, try again later")
-			break 
+			break
 		}
 
 		var choice string
 
-		ctx, cancel = context.WithTimeout(context.Background(), WAIT_TIME*time.Second)
 		inputChan := make(chan string)
+		ctx, cancel = context.WithTimeout(context.Background(), WAIT_TIME*time.Second)
 
 		go func() {
 			reader := bufio.NewReader(os.Stdin)
 			fmt.Println("Do you want to accept or reject ride? (a/r)")
 			text, _ := reader.ReadString('\n')
 
-			select {
-			case inputChan <- text:
-			case <-ctx.Done():
-			}
+			inputChan <- text
 		}()
 
 		select {
@@ -124,14 +121,19 @@ func connectDriver(name string, port int) error {
 			cancel()
 
 		case <-ctx.Done():
-			err = timeoutHit(client, int(rideResponse.RideId))
 			cancel()
+			fmt.Println("timeout hit, are you still there?")
+			// wait for text on inputChan
+
+			err = timeoutHit(client, int(rideResponse.RideId))
 			if err != nil {
 				return err
 			}
+
+			// wait for the user to respond to our query
+			_ = <-inputChan
 			continue
 		}
-
 
 		choice = strings.Trim(choice, "\n")
 		if choice == "r" {
@@ -141,7 +143,6 @@ func connectDriver(name string, port int) error {
 			}
 			continue
 		}
-		print("here")
 
 		err = acceptRide(client, int(rideResponse.RideId), name)
 		if err != nil {

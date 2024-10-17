@@ -33,7 +33,7 @@ func main() {
 		portIndex := 0
 
 		for {
-			port, err  := strconv.Atoi(ports[portIndex])
+			port, err := strconv.Atoi(ports[portIndex])
 			if err != nil {
 				log.Fatalf("unable to convert port %s to int", ports[portIndex])
 			}
@@ -51,7 +51,7 @@ func main() {
 				break
 			}
 
-			nextPort := portIndex + 1 
+			nextPort := portIndex + 1
 			if nextPort == len(ports) {
 				log.Print("all servers accessed, try again later!")
 			}
