@@ -2,9 +2,13 @@ package utils
 
 import (
 	"bufio"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
 	"os"
+
+	"google.golang.org/grpc/credentials"
 )
 
 func ReadPortsFromFile(filePath string) ([]string, error) {
@@ -43,4 +47,31 @@ func ReadPortsFromFile(filePath string) ([]string, error) {
 	}
 
 	return ports, nil
+}
+
+func LoadTLSCredentials(clientType string) (credentials.TransportCredentials, error) {
+	// Load certificate of the CA who signed server's certificate
+	pemClientCA, err := os.ReadFile("../../certs/ca.crt")
+	if err != nil {
+		return nil, err
+	}
+
+	certPool := x509.NewCertPool()
+	if !certPool.AppendCertsFromPEM(pemClientCA) {
+		return nil, fmt.Errorf("failed to add server CA's certificate")
+	}
+
+	// load client's certificate and private key
+	clientCert, err := tls.LoadX509KeyPair(fmt.Sprintf("../../certs/%s.crt", clientType), fmt.Sprintf("../../certs/%s.key", clientType))
+	if err != nil {
+		return nil, err
+	}
+
+	config := &tls.Config{
+		Certificates: []tls.Certificate{clientCert},
+		RootCAs:      certPool,
+	}
+
+	// Create the credentials and return it
+	return credentials.NewTLS(config), nil
 }
