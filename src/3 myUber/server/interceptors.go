@@ -13,20 +13,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func extractClientInfo(ctx context.Context) (clientID, clientType string) {
+func extractClientInfo(ctx context.Context) (clientID string) {
 	clientID = "unknown"
-	clientType = "unknown"
 
 	if p, ok := peer.FromContext(ctx); ok {
 		if tlsInfo, ok := p.AuthInfo.(credentials.TLSInfo); ok {
 			if len(tlsInfo.State.VerifiedChains) > 0 && len(tlsInfo.State.VerifiedChains[0]) > 0 {
 				subject := tlsInfo.State.VerifiedChains[0][0].Subject.CommonName
 				clientID = subject
-				if strings.Contains(subject, "rider") {
-					clientType = "rider"
-				} else if strings.Contains(subject, "driver") {
-					clientType = "driver"
-				}
 			}
 		}
 	}
@@ -40,11 +34,11 @@ func UnaryLoggingInterceptor(
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
-	clientID, clientType := extractClientInfo(ctx)
-	log.Printf("call -> method: %s, clientID: %s, clientType: %s, request: %+v", info.FullMethod, clientID, clientType, req)
+	clientID:= extractClientInfo(ctx)
+	log.Printf("call -> method: %s, clientID: %s, request: %+v\n", info.FullMethod, clientID, req)
 
 	resp, err := handler(ctx, req)
-	log.Printf("completed -> method: %s, clientID: %s, clientType: %s, response: %+v, error: %v", info.FullMethod, clientID, clientType, resp, err)
+	log.Printf("completed -> method: %s, clientID: %s, response: %+v, error: %v\n", info.FullMethod, clientID, resp, err)
 
 	return resp, err
 }
@@ -76,7 +70,7 @@ func AuthInterceptor(
 	if strings.Contains(info.FullMethod, "DriverService") && !strings.Contains(subject, "Driver") {
 		return nil, status.Errorf(codes.PermissionDenied, "only driver can use DriverService")
 	}
-	log.Printf("authenticated client: %s", subject)
+	log.Printf("authenticated client: %s\n", subject)
 
 	return handler(ctx, req)
 }
