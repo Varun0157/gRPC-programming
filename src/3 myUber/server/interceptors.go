@@ -70,10 +70,10 @@ func AuthInterceptor(
 	}
 
 	subject := tlsAuth.State.VerifiedChains[0][0].Subject.CommonName
-	if strings.Contains(info.FullMethod, "RiderService") && !strings.Contains(subject, "rider") {
+	if strings.Contains(info.FullMethod, "RiderService") && !strings.Contains(subject, "Rider") {
 		return nil, status.Errorf(codes.PermissionDenied, "only rider can use RiderService")
 	}
-	if strings.Contains(info.FullMethod, "DriverService") && !strings.Contains(subject, "driver") {
+	if strings.Contains(info.FullMethod, "DriverService") && !strings.Contains(subject, "Driver") {
 		return nil, status.Errorf(codes.PermissionDenied, "only driver can use DriverService")
 	}
 	log.Printf("authenticated client: %s", subject)

@@ -1,0 +1,19 @@
+[ req ]
+default_bits       = 4096
+distinguished_name = req_distinguished_name
+req_extensions     = v3_req
+prompt             = no
+
+[ req_distinguished_name ]
+C  = IN
+ST = Telangana
+O  = MyUber
+CN = Rider
+
+[ v3_req ]
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = localhost
