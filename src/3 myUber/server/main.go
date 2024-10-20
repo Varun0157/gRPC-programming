@@ -2,17 +2,18 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"crypto/tls"
-	"crypto/x509"
 
 	comm "distsys/grpc-prog/myuber/comm"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type server struct {
@@ -65,9 +66,9 @@ func (s *server) CompleteRideRequest(ctx context.Context, req *comm.DriverComple
 }
 
 // authorisation
-func loadTLSCredentials() (credentials credentials.TransportCredentials, error) {
+func loadTLSCredentials() (credentials.TransportCredentials, error) {
 	// Load certificate of the CA who signed server's certificate
-	pemClientCA, err := ioutil.ReadFile("../certs/ca.crt")
+	pemClientCA, err := os.ReadFile("../certs/ca.crt")
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +86,8 @@ func loadTLSCredentials() (credentials credentials.TransportCredentials, error) 
 
 	config := &tls.Config{
 		Certificates: []tls.Certificate{serverCert},
-		ClientAuth: tls.RequireAndVerifyClientCert,
-		ClientCAs: certPool,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    certPool,
 	}
 
 	// Create the credentials and return it

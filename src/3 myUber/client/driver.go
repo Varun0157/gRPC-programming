@@ -129,7 +129,7 @@ func connectDriver(name string, port int) error {
 				return err
 			}
 
-			// wait for the user to respond to the timeout comment 
+			// wait for the user to respond to the timeout comment
 			_ = <-inputChan
 			continue
 		}
