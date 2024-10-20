@@ -123,14 +123,13 @@ func connectDriver(name string, port int) error {
 		case <-ctx.Done():
 			cancel()
 			fmt.Println("timeout hit, are you still there?")
-			// wait for text on inputChan
 
 			err = timeoutHit(client, int(rideResponse.RideId))
 			if err != nil {
 				return err
 			}
 
-			// wait for the user to respond to our query
+			// wait for the user to respond to the timeout comment 
 			_ = <-inputChan
 			continue
 		}

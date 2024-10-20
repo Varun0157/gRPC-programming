@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"crypto/tls"
+	"crypto/x509"
 
 	comm "distsys/grpc-prog/myuber/comm"
 
@@ -62,6 +64,35 @@ func (s *server) CompleteRideRequest(ctx context.Context, req *comm.DriverComple
 	return &comm.DriverCompleteResponse{Success: true}, nil
 }
 
+// authorisation
+func loadTLSCredentials() (credentials credentials.TransportCredentials, error) {
+	// Load certificate of the CA who signed server's certificate
+	pemClientCA, err := ioutil.ReadFile("../certs/ca.crt")
+	if err != nil {
+		return nil, err
+	}
+
+	certPool := x509.NewCertPool()
+	if !certPool.AppendCertsFromPEM(pemClientCA) {
+		return nil, fmt.Errorf("failed to add server CA's certificate")
+	}
+
+	// load server's certificate and private key
+	serverCert, err := tls.LoadX509KeyPair("../certs/server.crt", "../certs/server.key")
+	if err != nil {
+		return nil, err
+	}
+
+	config := &tls.Config{
+		Certificates: []tls.Certificate{serverCert},
+		ClientAuth: tls.RequireAndVerifyClientCert,
+		ClientCAs: certPool,
+	}
+
+	// Create the credentials and return it
+	return credentials.NewTLS(config), nil
+}
+
 func LaunchServer(portFilePath string) {
 	lis, port, nil := listenOnPort()
 	log.Printf("server listening on port %d", port)
@@ -70,7 +101,12 @@ func LaunchServer(portFilePath string) {
 		log.Fatalf("failed to append port to file: %v", err)
 	}
 
-	s := grpc.NewServer(grpc.UnaryInterceptor(UnaryLoggingInterceptor))
+	tlsCredentials, err := loadTLSCredentials()
+	if err != nil {
+		log.Fatalf("failed to load TLS credentials: %v", err)
+	}
+
+	s := grpc.NewServer(grpc.Creds(tlsCredentials), grpc.UnaryInterceptor(UnaryLoggingInterceptor))
 	comm.RegisterRiderServiceServer(s, &server{})
 	comm.RegisterDriverServiceServer(s, &server{})
 
