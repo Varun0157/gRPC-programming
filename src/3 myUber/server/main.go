@@ -107,7 +107,7 @@ func LaunchServer(portFilePath string) {
 		log.Fatalf("failed to load TLS credentials: %v", err)
 	}
 
-	s := grpc.NewServer(grpc.Creds(tlsCredentials), grpc.UnaryInterceptor(UnaryLoggingInterceptor))
+	s := grpc.NewServer(grpc.Creds(tlsCredentials), grpc.ChainUnaryInterceptor(UnaryLoggingInterceptor, AuthInterceptor))
 	comm.RegisterRiderServiceServer(s, &server{})
 	comm.RegisterDriverServiceServer(s, &server{})
 

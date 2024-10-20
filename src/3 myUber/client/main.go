@@ -65,6 +65,9 @@ func main() {
 		if err != nil {
 			log.Fatalf("could not convert port to int: %v", err)
 		}
-		connectRider(port)
+		err = connectRider(port)
+		if err != nil {
+			log.Fatalf("error creating rider client: %v", err)
+		}
 	}
 }

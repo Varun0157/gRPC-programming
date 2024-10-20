@@ -51,7 +51,7 @@ func ReadPortsFromFile(filePath string) ([]string, error) {
 
 func LoadTLSCredentials(clientType string) (credentials.TransportCredentials, error) {
 	// Load certificate of the CA who signed server's certificate
-	pemClientCA, err := os.ReadFile("../../certs/ca.crt")
+	pemClientCA, err := os.ReadFile("../certs/ca.crt")
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func LoadTLSCredentials(clientType string) (credentials.TransportCredentials, er
 	}
 
 	// load client's certificate and private key
-	clientCert, err := tls.LoadX509KeyPair(fmt.Sprintf("../../certs/%s.crt", clientType), fmt.Sprintf("../../certs/%s.key", clientType))
+	clientCert, err := tls.LoadX509KeyPair(fmt.Sprintf("../certs/%s.crt", clientType), fmt.Sprintf("../certs/%s.key", clientType))
 	if err != nil {
 		return nil, err
 	}
