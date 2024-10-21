@@ -24,7 +24,7 @@ type RideDetails struct {
 	startLocation string
 	endLocation   string
 	status        string
-	numRejections int
+	numReassignments int
 }
 
 var (
@@ -49,7 +49,7 @@ func AddRideRequest(req *comm.RideRequest, portNum int) string {
 		startLocation: req.StartLocation,
 		endLocation:   req.EndLocation,
 		status:        WAITING,
-		numRejections: 0,
+		numReassignments: 0,
 	}
 
 	rideMutex.Lock()
@@ -116,10 +116,10 @@ func RejectRide(rideID string) {
 
 	// increment the number of rejections
 	ride := Rides[rideID]
-	ride.numRejections++
+	ride.numReassignments++
 
 	// if the number of rejections exceeds the limit, cancel the ride
-	if ride.numRejections >= MAX_REJECTIONS {
+	if ride.numReassignments >= MAX_REJECTIONS {
 		ride.status = CANCELLED
 	} else {
 		ride.status = WAITING
@@ -141,6 +141,7 @@ func TimeoutRide(rideID string) {
 
 	ride := Rides[rideID]
 	ride.status = WAITING
+	ride.numReassignments++
 	Rides[rideID] = ride
 
 	toAssign = append(toAssign, rideID)

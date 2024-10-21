@@ -37,7 +37,7 @@ func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*c
 	return &comm.RideStatusResponse{
 		Status:        resp.status,
 		Driver:        resp.driver,
-		NumRejections: int32(resp.numRejections),
+		NumReassignments: int32(resp.numReassignments),
 		Success:       err == nil,
 	}, nil
 }
@@ -50,7 +50,7 @@ func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentReq
 		Rider:         rideDetails.rider,
 		StartLocation: rideDetails.startLocation,
 		EndLocation:   rideDetails.endLocation,
-		NumRejections: int32(rideDetails.numRejections),
+		NumReassignments: int32(rideDetails.numReassignments),
 	}, nil
 }
 

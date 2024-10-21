@@ -132,11 +132,11 @@ func connectDriver(conn *grpc.ClientConn, name string) error {
 
 		fmt.Println()
 		fmt.Printf("offered ride details ->\n")
-		fmt.Printf("ride id:        %s\n", rideResponse.RideId)
-		fmt.Printf("rider:          %s\n", rideResponse.Rider)
-		fmt.Printf("start location: %s\n", rideResponse.StartLocation)
-		fmt.Printf("end location:   %s\n", rideResponse.EndLocation)
-		fmt.Printf("num rejections: %d\n", rideResponse.NumRejections)
+		fmt.Printf("ride id:           %s\n", rideResponse.RideId)
+		fmt.Printf("rider:             %s\n", rideResponse.Rider)
+		fmt.Printf("start location:    %s\n", rideResponse.StartLocation)
+		fmt.Printf("end location:      %s\n", rideResponse.EndLocation)
+		fmt.Printf("num reassignments: %d\n", rideResponse.NumReassignments)
 		fmt.Println()
 
 		var choice string
@@ -191,6 +191,6 @@ func connectDriver(conn *grpc.ClientConn, name string) error {
 			return err
 		}
 	}
-	
+
 	return nil
 }
