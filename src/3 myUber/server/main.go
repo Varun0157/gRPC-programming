@@ -32,13 +32,25 @@ func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*c
 		return &comm.RideStatusResponse{Status: "does not exist", Success: false}, nil
 	}
 	
-	status, err := GetRideStatus(req.RideId)
-	return &comm.RideStatusResponse{Status: status, Success: err == nil}, nil
+	resp, err := GetRideStatus(req.RideId)
+	return &comm.RideStatusResponse{
+		Status: resp.status,
+		Driver: resp.driver,
+		NumRejections: int32(resp.numRejections), 
+		Success: err == nil,
+	}, nil
 }
 
 func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentRequest) (*comm.DriverAssignmentResponse, error) {
-	ride_id, _ := GetTopRequest()
-	return &comm.DriverAssignmentResponse{RideId: ride_id, Success: len(ride_id) > 0}, nil
+	ride_id, rideDetails := GetTopRequest()
+	return &comm.DriverAssignmentResponse{
+		Success: len(ride_id) > 0,
+		RideId: ride_id, 
+		Rider: rideDetails.rider,
+		StartLocation: rideDetails.startLocation,
+		EndLocation: rideDetails.endLocation,
+		NumRejections: int32(rideDetails.numRejections),
+	}, nil
 }
 
 func (s *server) AcceptRideRequest(ctx context.Context, req *comm.DriverAcceptRequest) (*comm.DriverAcceptResponse, error) {
@@ -51,33 +63,29 @@ func (s *server) AcceptRideRequest(ctx context.Context, req *comm.DriverAcceptRe
 }
 
 func (s *server) RejectRideRequest(ctx context.Context, req *comm.DriverRejectRequest) (*comm.DriverRejectResponse, error) {
-	rideId := req.RideId
-
-	if !RideExists(rideId) {
+	if !RideExists(req.RideId) {
 		return &comm.DriverRejectResponse{Success: false}, nil
 	}
 
-	RejectRide(rideId)
+	RejectRide(req.RideId)
 	return &comm.DriverRejectResponse{Success: true}, nil
 }
 
 func (s *server) TimeoutRideRequest(ctx context.Context, req *comm.DriverTimeoutRequest) (*comm.DriverTimeoutResponse, error) {
-	rideId := req.RideId
-	if !RideExists(rideId) {
+	if !RideExists(req.RideId) {
 		return &comm.DriverTimeoutResponse{Success: false}, nil 
 	}
 	
-	TimeoutRide(rideId)
+	TimeoutRide(req.RideId)
 	return &comm.DriverTimeoutResponse{Success: true}, nil
 }
 
 func (s *server) CompleteRideRequest(ctx context.Context, req *comm.DriverCompleteRequest) (*comm.DriverCompleteResponse, error) {
-	rideId := req.RideId
-	if !RideExists(rideId) {
+	if !RideExists(req.RideId) {
 		return &comm.DriverCompleteResponse{Success: false}, nil 
 	}
 
-	CompleteRide(rideId)
+	CompleteRide(req.RideId)
 	return &comm.DriverCompleteResponse{Success: true}, nil
 }
 
@@ -146,7 +154,7 @@ func LaunchServer(portFilePath string) {
 		log.Printf("port removed from %s", portFilePath)
 	}
 
-	log.Println("Server shut down")
+	log.Println("server shut down")
 }
 
 func main() {

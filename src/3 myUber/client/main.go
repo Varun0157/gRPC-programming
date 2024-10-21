@@ -84,25 +84,17 @@ func createDriverClient() {
 }
 
 func main() {
-	for {
-		utils.PrintLines(10)
+	utils.PrintLines(10)
 
-		var choice string
-		fmt.Println("rider or driver (r/d)?")
-		fmt.Scan(&choice)
-	
-		if choice == "d" {
-			createDriverClient()
-		} else {
-			createRiderClient()
-		}
+	var choice string
+	fmt.Println("rider or driver (r/d)?")
+	fmt.Scan(&choice)
 
-		utils.PrintLines(10)
+	if choice == "d" {
+		createDriverClient()
+	} else {
+		createRiderClient()
+	}
 
-		fmt.Printf("Do you want to continue? (y/n)")
-		fmt.Scan(&choice)
-		if choice == "n" {
-			break
-		}
-	}	
+	utils.PrintLines(10)
 }

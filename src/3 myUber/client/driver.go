@@ -30,7 +30,7 @@ func rejectRide(client comm.DriverServiceClient, rideId string) error {
 			return fmt.Errorf("failed to reject ride: %v", err)
 		}
 		if rejectResponse.Success == false {
-			log.Printf("ride not found in curr server, try again")
+			log.Printf("ride %s not found in curr server, try again", rideId)
 			continue 
 		}
 
@@ -52,7 +52,7 @@ func acceptRide(client comm.DriverServiceClient, rideId string, name string) err
 		}
 
 		if acceptResp.Success == false {
-			log.Println("ride not found in curr server, trying again")
+			log.Printf("ride %s not found in curr server, try again", rideId)
 			continue
 		}
 		
@@ -72,7 +72,7 @@ func completeRide(client comm.DriverServiceClient, rideId string) error {
 			return fmt.Errorf("failed to complete ride: %v", err)
 		}
 		if completeResp.Success == false {
-			log.Println("unable to find ride in curr server, trying again")
+			log.Printf("ride %s not found in curr server, try again", rideId)
 			continue 
 		}
 	
@@ -94,7 +94,7 @@ func timeoutHit(client comm.DriverServiceClient, rideId string) error {
 		}
 
 		if timeOutResp.Success == false {
-			log.Println("ride not found in curr server, trying again")
+			log.Printf("ride %s not found in curr server, try again", rideId)
 			continue
 		}
 		
@@ -117,20 +117,26 @@ func connectDriver(conn *grpc.ClientConn, name string) error {
 		if err != nil {
 			return fmt.Errorf("failed to assign driver: %v", err)
 		}
-		fmt.Println(rideResponse.RideId)
 		if rideResponse.Success == false {
 			log.Println("no pending ride requests on server, try again later")
 			break
 		}
 
+		fmt.Printf("ride details ->\n")
+		fmt.Printf("ride id: %s\n", rideResponse.RideId)
+		fmt.Printf("rider: %s\n", rideResponse.Rider)
+		fmt.Printf("start location: %s\n", rideResponse.StartLocation)
+		fmt.Printf("end location: %s\n", rideResponse.EndLocation)
+		fmt.Printf("num rejections: %d\n", rideResponse.NumRejections)
+
 		var choice string
 
 		inputChan := make(chan string)
-		ctx, cancel = context.WithTimeout(context.Background(), WAIT_TIME*time.Second)
+		ctx, cancel = context.WithTimeout(context.Background(), WAIT_TIME * time.Second)
 
 		go func() {
 			reader := bufio.NewReader(os.Stdin)
-			fmt.Println("Do you want to accept or reject ride? (a/r)")
+			fmt.Println("do you want to accept or reject ride? (a/r)")
 			text, _ := reader.ReadString('\n')
 
 			inputChan <- text
@@ -142,7 +148,7 @@ func connectDriver(conn *grpc.ClientConn, name string) error {
 
 		case <-ctx.Done():
 			cancel()
-			fmt.Println("timeout hit, are you still there?")
+			fmt.Printf("timeout of %ds hit, are you still there?", WAIT_TIME)
 
 			err = timeoutHit(client, rideResponse.RideId)
 			if err != nil {

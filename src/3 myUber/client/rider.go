@@ -25,20 +25,19 @@ func connectRider(conn *grpc.ClientConn, name string, source string, dest string
 	if err != nil {
 		return fmt.Errorf("failed to request ride: %v", err)
 	}
+	log.Printf("ride requested, id: %s", rideResponse.RideId)
 
 	for {
 		// allow the rider to keep getting ride status, or exit this ride tracking entirely (break condition)
-		fmt.Println(rideResponse.RideId)
-
 		var choice string
-		fmt.Println("Do you want to check the status of your ride? (y/n)")
+		fmt.Println("do you want to check the status of your ride? (<anything>/n)")
 		fmt.Scan(&choice)
 
 		if choice == "n" {
 			break
 		}
 
-		fmt.Println("Checking ride status... ")
+		log.Println("checking ride status... ")
 		for {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			statusResponse, err := client.GetStatus(ctx, &comm.RideStatusRequest{
@@ -50,12 +49,15 @@ func connectRider(conn *grpc.ClientConn, name string, source string, dest string
 				return fmt.Errorf("failed to get ride status: %v", err)
 			}
 	
-			if statusResponse.Success == true {
-				fmt.Printf("status: %s", statusResponse.Status)
-				break
+			if statusResponse.Success == false {
+				log.Printf("ride not found in curr server, trying again")
+				continue 
 			}
-
-			log.Printf("ride not found in curr server, trying again")
+			
+			fmt.Printf("status: %s\n", statusResponse.Status)
+			fmt.Printf("driver: %s\n", statusResponse.Driver)
+			fmt.Printf("num rejections: %d\n", statusResponse.NumRejections)
+			break 
 		}
 	}
 

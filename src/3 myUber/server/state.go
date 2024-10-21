@@ -67,11 +67,11 @@ func AddRideRequest(req *comm.RideRequest, portNum int) string {
 	return rideID
 }
 
-func GetRideStatus(rideID string) (string, error) {
+func GetRideStatus(rideID string) (RideDetails, error) {
 	rideMutex.Lock()
 	defer rideMutex.Unlock()
 
-	return Rides[rideID].status, nil
+	return Rides[rideID], nil
 }
 
 func GetTopRequest() (string, RideDetails) {
