@@ -28,7 +28,7 @@ func readDataFromFile(filePath string) ([]float64, error) {
 	scanner := bufio.NewScanner(file)
 	var data []float64
 	for scanner.Scan() {
-		value, err := strconv.ParseFloat(scanner.Text(), 32)
+		value, err := strconv.ParseFloat(scanner.Text(), 64)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing float: %v", err)
 		}
@@ -45,6 +45,10 @@ func readDataFromFile(filePath string) ([]float64, error) {
 // partition the data across the files
 func partitionData(ports []string, dataPoints []float64) error {
 	var NUM_SERVERS int = len(ports)
+	if NUM_SERVERS == 0 {
+		return fmt.Errorf("no active servers")
+	}
+
 	var NUM_DATA_POINTS int = len(dataPoints)
 
 	var BASE_SIZE int = NUM_DATA_POINTS / NUM_SERVERS

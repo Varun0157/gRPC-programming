@@ -2,8 +2,8 @@
 
 import random
 
-N = int(1e5)
-MAX_MAGNITUDE = 1000
+N = int(5e5)
+MAX_MAGNITUDE = 10000
 filename = "data.txt"
 
 with open(filename, "w") as f:

@@ -81,8 +81,9 @@ func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.Neighb
 }
 
 func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint float64) ([]utils.NeighbourInfo, error) {
-	// create a buffered channel to store the responses from each server
-	responsesChan := make(chan []utils.NeighbourInfo, len(ports))
+	var mu sync.Mutex
+	var responses [][]utils.NeighbourInfo
+	
 	// create a wait group to help wait for all goroutines to finish
 	var wg sync.WaitGroup
 
@@ -95,20 +96,15 @@ func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint fl
 				log.Printf("[warning] could not contact server on port %s: %v", port, err)
 				return
 			}
-			responsesChan <- response // send the response to the channel
+			
+			mu.Lock()
+			responses = append(responses, response)
+			mu.Unlock()
 		}(port)
 	}
 
-	// wait for all goroutines to finish, then close the channel
-	go func() {
-		wg.Wait()
-		close(responsesChan)
-	}()
-
-	var responses [][]utils.NeighbourInfo
-	for response := range responsesChan {
-		responses = append(responses, response)
-	}
+	// wait for all goroutines to finish
+	wg.Wait()
 
 	return mergeNearestNeighbours(responses, numNearestNeighbours), nil
 }
