@@ -11,6 +11,9 @@ type server struct {
 	port int
 }
 
+/*
+RiderService
+*/
 func (s *server) RequestRide(ctx context.Context, req *comm.RideRequest) (*comm.RideResponse, error) {
 	rideID := AddRideRequest(req, s.port)
 	return &comm.RideResponse{RideId: rideID}, nil
@@ -18,7 +21,7 @@ func (s *server) RequestRide(ctx context.Context, req *comm.RideRequest) (*comm.
 
 func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*comm.RideStatusResponse, error) {
 	if !RideExists(req.RideId) {
-		return &comm.RideStatusResponse{Status: "does not exist", Success: false}, nil
+		return &comm.RideStatusResponse{Status: "ride does not exist", Success: false}, nil
 	}
 
 	resp, err := GetRideStatus(req.RideId)
@@ -30,6 +33,9 @@ func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*c
 	}, nil
 }
 
+/*
+DriverService
+*/
 func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentRequest) (*comm.DriverAssignmentResponse, error) {
 	ride_id, rideDetails := GetTopRequest()
 	return &comm.DriverAssignmentResponse{

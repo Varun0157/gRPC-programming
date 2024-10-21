@@ -77,7 +77,7 @@ func LoadTLSCredentials(clientType string) (credentials.TransportCredentials, er
 
 	config := &tls.Config{
 		Certificates: []tls.Certificate{clientCert},
-		RootCAs:      certPool, // as we want to verify server's certificate
+		RootCAs:      certPool, // RootCA's as we want to verify server's certificate
 	}
 
 	// Create the credentials and return it
