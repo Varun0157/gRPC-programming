@@ -84,7 +84,7 @@ func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.Neighb
 func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint float64) ([]utils.NeighbourInfo, error) {
 	var mu sync.Mutex
 	var responses [][]utils.NeighbourInfo
-	
+
 	// create a wait group to help wait for all goroutines to finish
 	var wg sync.WaitGroup
 
@@ -98,10 +98,10 @@ func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint fl
 				log.Printf("[warning] could not contact server on port %s: %v", port, err)
 				return
 			}
-			
+
 			mu.Lock()
 			responses = append(responses, response)
-			mu.Unlock()	
+			mu.Unlock()
 		}(port)
 	}
 
@@ -139,9 +139,9 @@ func main() {
 		log.Fatalf("error getting nearest neighbors: %v", err)
 	}
 
-	// let the file name contain num ports and data point 
+	// let the file name contain num ports and data point
 	fileName := fmt.Sprintf("nn_%d_%f.txt", len(ports), point)
-	file, err := os.OpenFile(fileName, os.O_CREATE | os.O_WRONLY | os.O_TRUNC, 0644)
+	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Fatalf("could not create or truncate file: %v", err)
 	}
