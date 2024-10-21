@@ -34,6 +34,8 @@ func rejectRide(client comm.DriverServiceClient, rideId string) error {
 			continue
 		}
 
+		log.Printf("[reject] ride %s rejected successfully", rideId)
+
 		return err
 	}
 }
@@ -56,6 +58,8 @@ func acceptRide(client comm.DriverServiceClient, rideId string, name string) err
 			continue
 		}
 
+		log.Printf("[accept] ride %s accepted successfully", rideId)
+
 		return err
 	}
 }
@@ -75,6 +79,8 @@ func completeRide(client comm.DriverServiceClient, rideId string) error {
 			log.Printf("[complete] ride %s not found in curr server, trying again", rideId)
 			continue
 		}
+
+		log.Printf("[complete] ride %s completed successfully", rideId)
 
 		return err
 	}
@@ -97,6 +103,8 @@ func timeoutHit(client comm.DriverServiceClient, rideId string) error {
 			log.Printf("[timeout] ride %s not found in curr server, trying again", rideId)
 			continue
 		}
+
+		log.Printf("[timeout] ride %s timed out successfully", rideId)
 
 		return err
 	}
@@ -183,5 +191,6 @@ func connectDriver(conn *grpc.ClientConn, name string) error {
 			return err
 		}
 	}
+	
 	return nil
 }

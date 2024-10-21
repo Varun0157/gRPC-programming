@@ -58,8 +58,9 @@ func createDriverClient(loadBalancer string) {
 		log.Fatalf("could not load TLS credentials: %v", err)
 	}
 
-	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"),
-	grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]}`, loadBalancer)),
+	conn, err := grpc.NewClient(
+		fmt.Sprintf("%s:///%s", SCHEME, "localhost"),
+		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]}`, loadBalancer)),
 		grpc.WithTransportCredentials(tlsCredentials),
 	)
 	if err != nil {
@@ -91,6 +92,7 @@ func main() {
 	fmt.Println("rider or driver (r/d)?")
 	fmt.Scan(&choice)
 
+	// load balancer choices: random_picker, round_robin, pick_first
 	switch choice {
 	case "d":
 		createDriverClient("random_picker")
