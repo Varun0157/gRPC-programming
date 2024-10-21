@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func extractClientInfo(ctx context.Context) (clientID string) {
+func extractClientID(ctx context.Context) (clientID string) {
 	clientID = "unknown"
 
 	if p, ok := peer.FromContext(ctx); ok {
@@ -28,17 +28,32 @@ func extractClientInfo(ctx context.Context) (clientID string) {
 	return
 }
 
+func extractClientState(ctx context.Context) (clientState string) {
+	clientState = "unknown"
+
+	if p, ok := peer.FromContext(ctx); ok {
+		if tlsInfo, ok := p.AuthInfo.(credentials.TLSInfo); ok {
+			if len(tlsInfo.State.VerifiedChains) > 0 && len(tlsInfo.State.VerifiedChains[0]) > 0 {
+				subject := tlsInfo.State.VerifiedChains[0][0].Subject
+				clientState = subject.Province[0] + "," + subject.Country[0]
+			}
+		}
+	}
+
+	return
+}
+
 func UnaryLoggingInterceptor(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
-	clientID := extractClientInfo(ctx)
-	log.Printf("call -> method: %s, clientID: %s, request: %+v\n", info.FullMethod, clientID, req)
+	clientID := extractClientID(ctx)
+	log.Printf("[log-interceptor] call -> method: %s, clientID: %s, request: %+v\n", info.FullMethod, clientID, req)
 
 	resp, err := handler(ctx, req)
-	log.Printf("completed -> method: %s, clientID: %s, response: %+v, error: %v\n", info.FullMethod, clientID, resp, err)
+	log.Printf("[log-interceptor] resp -> method: %s, clientID: %s, response: %+v, error: %v\n", info.FullMethod, clientID, resp, err)
 
 	return resp, err
 }
@@ -65,12 +80,24 @@ func AuthInterceptor(
 
 	subject := tlsAuth.State.VerifiedChains[0][0].Subject.CommonName
 	if strings.Contains(info.FullMethod, "RiderService") && !strings.Contains(subject, "Rider") {
-		return nil, status.Errorf(codes.PermissionDenied, "only rider can use RiderService")
+		return nil, status.Errorf(codes.PermissionDenied, "only Rider can use RiderService")
 	}
 	if strings.Contains(info.FullMethod, "DriverService") && !strings.Contains(subject, "Driver") {
-		return nil, status.Errorf(codes.PermissionDenied, "only driver can use DriverService")
+		return nil, status.Errorf(codes.PermissionDenied, "only Driver can use DriverService")
 	}
-	log.Printf("authenticated client: %s\n", subject)
+	log.Printf("[auth-interceptor] authenticated client: %s\n", subject)
+
+	return handler(ctx, req)
+}
+
+func MetadataInterceptor(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	clientState := extractClientState(ctx)
+	log.Printf("[metadata-interceptor] client state: %s\n", clientState)
 
 	return handler(ctx, req)
 }

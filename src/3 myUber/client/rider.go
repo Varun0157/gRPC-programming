@@ -43,21 +43,21 @@ func connectRider(conn *grpc.ClientConn, name string, source string, dest string
 			statusResponse, err := client.GetStatus(ctx, &comm.RideStatusRequest{
 				RideId: rideResponse.RideId,
 			})
-			cancel()	
-			
+			cancel()
+
 			if err != nil {
 				return fmt.Errorf("failed to get ride status: %v", err)
 			}
-	
+
 			if statusResponse.Success == false {
 				log.Printf("ride not found in curr server, trying again")
-				continue 
+				continue
 			}
-			
+
 			fmt.Printf("status: %s\n", statusResponse.Status)
 			fmt.Printf("driver: %s\n", statusResponse.Driver)
 			fmt.Printf("num rejections: %d\n", statusResponse.NumRejections)
-			break 
+			break
 		}
 	}
 

@@ -39,7 +39,7 @@ func RideExists(rideID string) bool {
 	defer rideMutex.Unlock()
 
 	_, ok := Rides[rideID]
-	return ok 
+	return ok
 }
 
 func AddRideRequest(req *comm.RideRequest, portNum int) string {

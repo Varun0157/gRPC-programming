@@ -12,7 +12,7 @@ import (
 
 func listenOnPort() (lis net.Listener, port int, err error) {
 	for {
-		port = rand.Intn(65535 - 1024) + 1024
+		port = rand.Intn(65535-1024) + 1024
 		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
 		if err == nil {
 			break

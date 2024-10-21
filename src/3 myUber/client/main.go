@@ -33,18 +33,18 @@ func createRiderClient() {
 		log.Fatalf("could not load TLS credentials: %v", err)
 	}
 
-	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"), 
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
 		grpc.WithTransportCredentials(tlsCredentials),
 	)
-	
+
 	if err != nil {
 		log.Fatalf("failed to connect to server: %v", err)
 	}
 	defer conn.Close()
 
 	name, source, dest := getRiderDetails()
-	
+
 	err = connectRider(conn, name, source, dest)
 	if err != nil {
 		log.Fatalf("error creating rider client: %v", err)
@@ -57,7 +57,7 @@ func createDriverClient() {
 		log.Fatalf("could not load TLS credentials: %v", err)
 	}
 
-	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"), 
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
 		grpc.WithTransportCredentials(tlsCredentials),
 	)

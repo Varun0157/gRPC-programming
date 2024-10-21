@@ -19,7 +19,7 @@ import (
 type server struct {
 	comm.UnimplementedRiderServiceServer
 	comm.UnimplementedDriverServiceServer
-	port int 
+	port int
 }
 
 func (s *server) RequestRide(ctx context.Context, req *comm.RideRequest) (*comm.RideResponse, error) {
@@ -31,24 +31,24 @@ func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*c
 	if !RideExists(req.RideId) {
 		return &comm.RideStatusResponse{Status: "does not exist", Success: false}, nil
 	}
-	
+
 	resp, err := GetRideStatus(req.RideId)
 	return &comm.RideStatusResponse{
-		Status: resp.status,
-		Driver: resp.driver,
-		NumRejections: int32(resp.numRejections), 
-		Success: err == nil,
+		Status:        resp.status,
+		Driver:        resp.driver,
+		NumRejections: int32(resp.numRejections),
+		Success:       err == nil,
 	}, nil
 }
 
 func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentRequest) (*comm.DriverAssignmentResponse, error) {
 	ride_id, rideDetails := GetTopRequest()
 	return &comm.DriverAssignmentResponse{
-		Success: len(ride_id) > 0,
-		RideId: ride_id, 
-		Rider: rideDetails.rider,
+		Success:       len(ride_id) > 0,
+		RideId:        ride_id,
+		Rider:         rideDetails.rider,
 		StartLocation: rideDetails.startLocation,
-		EndLocation: rideDetails.endLocation,
+		EndLocation:   rideDetails.endLocation,
 		NumRejections: int32(rideDetails.numRejections),
 	}, nil
 }
@@ -73,16 +73,16 @@ func (s *server) RejectRideRequest(ctx context.Context, req *comm.DriverRejectRe
 
 func (s *server) TimeoutRideRequest(ctx context.Context, req *comm.DriverTimeoutRequest) (*comm.DriverTimeoutResponse, error) {
 	if !RideExists(req.RideId) {
-		return &comm.DriverTimeoutResponse{Success: false}, nil 
+		return &comm.DriverTimeoutResponse{Success: false}, nil
 	}
-	
+
 	TimeoutRide(req.RideId)
 	return &comm.DriverTimeoutResponse{Success: true}, nil
 }
 
 func (s *server) CompleteRideRequest(ctx context.Context, req *comm.DriverCompleteRequest) (*comm.DriverCompleteResponse, error) {
 	if !RideExists(req.RideId) {
-		return &comm.DriverCompleteResponse{Success: false}, nil 
+		return &comm.DriverCompleteResponse{Success: false}, nil
 	}
 
 	CompleteRide(req.RideId)
@@ -129,7 +129,7 @@ func LaunchServer(portFilePath string) {
 		log.Fatalf("failed to load TLS credentials: %v", err)
 	}
 
-	s := grpc.NewServer(grpc.Creds(tlsCredentials), grpc.ChainUnaryInterceptor(UnaryLoggingInterceptor, AuthInterceptor))
+	s := grpc.NewServer(grpc.Creds(tlsCredentials), grpc.ChainUnaryInterceptor(AuthInterceptor, UnaryLoggingInterceptor, MetadataInterceptor))
 	comm.RegisterRiderServiceServer(s, &server{port: port})
 	comm.RegisterDriverServiceServer(s, &server{port: port})
 
