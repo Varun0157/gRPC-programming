@@ -25,6 +25,7 @@ message RideStatusRequest {
 
 message RideStatusResponse {
     string status = 1;
+    bool success = 2;
 }
 
 // Driver APIs

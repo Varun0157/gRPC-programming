@@ -27,8 +27,8 @@ func (s *server) RequestRide(ctx context.Context, req *comm.RideRequest) (*comm.
 }
 
 func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*comm.RideStatusResponse, error) {
-	status := GetRideStatus(int(req.RideId))
-	return &comm.RideStatusResponse{Status: status}, nil
+	status, err := GetRideStatus(int(req.RideId))
+	return &comm.RideStatusResponse{Status: status, Success: err == nil}, nil
 }
 
 func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentRequest) (*comm.DriverAssignmentResponse, error) {

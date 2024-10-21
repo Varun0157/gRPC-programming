@@ -3,6 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+
+	"google.golang.org/grpc"
+
+	utils "distsys/grpc-prog/myuber/client/utils"
 )
 
 func getDriverDetails() (name string) {
@@ -23,34 +27,82 @@ func getRiderDetails() (name string, source string, dest string) {
 	return name, source, dest
 }
 
-func main() {
-	var choice string
-	fmt.Println("rider or driver (r/d)?")
-	fmt.Scan(&choice)
+func createRiderClient() {
+	tlsCredentials, err := utils.LoadTLSCredentials("rider")
+	if err != nil {
+		log.Fatalf("could not load TLS credentials: %v", err)
+	}
 
-	if choice == "d" {
-		name := getDriverDetails()
-		for {
-			err := connectDriver(name)
-			if err != nil {
-				log.Fatalf("error creating driver client %v", err)
-			}
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"), 
+		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+		grpc.WithTransportCredentials(tlsCredentials),
+	)
+	
+	if err != nil {
+		log.Fatalf("failed to connect to server: %v", err)
+	}
+	defer conn.Close()
 
-			var choice string
-			fmt.Print("try another server? (y/n)")
-			fmt.Scan(&choice)
+	name, source, dest := getRiderDetails()
+	
+	err = connectRider(conn, name, source, dest)
+	if err != nil {
+		log.Fatalf("error creating rider client: %v", err)
+	}
+}
 
-			if choice == "n" {
-				break
-			}
+func createDriverClient() {
+	tlsCredentials, err := utils.LoadTLSCredentials("driver")
+	if err != nil {
+		log.Fatalf("could not load TLS credentials: %v", err)
+	}
+
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"), 
+		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+		grpc.WithTransportCredentials(tlsCredentials),
+	)
+	if err != nil {
+		log.Fatalf("failed to connect to server: %v", err)
+	}
+	defer conn.Close()
+
+	name := getDriverDetails()
+	for {
+		err := connectDriver(conn, name)
+		if err != nil {
+			log.Fatalf("error creating driver client %v", err)
 		}
 
-	} else {
-		name, source, dest := getRiderDetails()
-		// choose a random port
-		err := connectRider(name, source, dest)
-		if err != nil {
-			log.Fatalf("error creating rider client: %v", err)
+		var choice string
+		fmt.Print("try again? (y/n)")
+		fmt.Scan(&choice)
+
+		if choice == "n" {
+			break
 		}
 	}
+}
+
+func main() {
+	for {
+		utils.PrintLines(10)
+
+		var choice string
+		fmt.Println("rider or driver (r/d)?")
+		fmt.Scan(&choice)
+	
+		if choice == "d" {
+			createDriverClient()
+		} else {
+			createRiderClient()
+		}
+
+		utils.PrintLines(10)
+
+		fmt.Printf("Do you want to continue? (y/n)")
+		fmt.Scan(&choice)
+		if choice == "n" {
+			break
+		}
+	}	
 }

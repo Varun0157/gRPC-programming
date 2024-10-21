@@ -11,7 +11,6 @@ import (
 
 	"google.golang.org/grpc"
 
-	"distsys/grpc-prog/myuber/client/utils"
 	comm "distsys/grpc-prog/myuber/comm"
 )
 
@@ -78,18 +77,7 @@ func timeoutHit(client comm.DriverServiceClient, rideId int) error {
 
 const WAIT_TIME = 10
 
-func connectDriver(name string) error {
-	tlsCredentials, err := utils.LoadTLSCredentials("driver")
-	if err != nil {
-		return fmt.Errorf("could not load TLS credentials: %v", err)
-	}
-
-	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"), grpc.WithTransportCredentials(tlsCredentials))
-	if err != nil {
-		return fmt.Errorf("failed to connect to server: %v", err)
-	}
-	defer conn.Close()
-
+func connectDriver(conn *grpc.ClientConn, name string) error {	
 	client := comm.NewDriverServiceClient(conn)
 
 	for {

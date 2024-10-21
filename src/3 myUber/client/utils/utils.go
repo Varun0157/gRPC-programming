@@ -82,3 +82,10 @@ func LoadTLSCredentials(clientType string) (credentials.TransportCredentials, er
 	// Create the credentials and return it
 	return credentials.NewTLS(config), nil
 }
+
+func PrintLines(numDashes int) {
+	for i := 0; i < numDashes; i++ {
+		fmt.Print("-")
+	}
+	fmt.Println()
+}

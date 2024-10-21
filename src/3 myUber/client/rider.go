@@ -3,27 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"google.golang.org/grpc"
 
-	utils "distsys/grpc-prog/myuber/client/utils"
 	comm "distsys/grpc-prog/myuber/comm"
 )
 
-func connectRider(name string, source string, dest string) error {
-	tlsCredentials, err := utils.LoadTLSCredentials("rider")
-	if err != nil {
-		return fmt.Errorf("could not load TLS credentials: %v", err)
-	}
-
-	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"), grpc.WithTransportCredentials(tlsCredentials))
-	if err != nil {
-		return fmt.Errorf("failed to connect to server: %v", err)
-	}
-
-	defer conn.Close()
-
+func connectRider(conn *grpc.ClientConn, name string, source string, dest string) error {
 	client := comm.NewRiderServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -51,17 +39,24 @@ func connectRider(name string, source string, dest string) error {
 		}
 
 		fmt.Println("Checking ride status... ")
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		statusResponse, err := client.GetStatus(ctx, &comm.RideStatusRequest{
-			RideId: int32(rideResponse.RideId),
-		})
-		cancel()
+		for {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			statusResponse, err := client.GetStatus(ctx, &comm.RideStatusRequest{
+				RideId: int32(rideResponse.RideId),
+			})
+			cancel()	
+			
+			if err != nil {
+				return fmt.Errorf("failed to get ride status: %v", err)
+			}
+	
+			if statusResponse.Success == true {
+				fmt.Printf("status: %s", statusResponse.Status)
+				break
+			}
 
-		if err != nil {
-			return fmt.Errorf("failed to get ride status: %v", err)
+			log.Printf("ride not found in curr server, trying again")
 		}
-
-		fmt.Printf("Ride status: %s\n", statusResponse.Status)
 	}
 
 	return nil

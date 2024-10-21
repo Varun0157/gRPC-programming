@@ -2,6 +2,7 @@ package main
 
 import (
 	comm "distsys/grpc-prog/myuber/comm"
+	"fmt"
 	"sync"
 )
 
@@ -58,11 +59,15 @@ func AddRideRequest(req *comm.RideRequest) int {
 	return rideID
 }
 
-func GetRideStatus(rideID int) string {
+func GetRideStatus(rideID int) (string, error) {
 	rideMutex.Lock()
 	defer rideMutex.Unlock()
 
-	return Rides[rideID].status
+	if _, ok := Rides[rideID]; !ok {
+		return "", fmt.Errorf("ride not found")
+	}
+
+	return Rides[rideID].status, nil
 }
 
 func GetTopRequest() (int, RideDetails) {
