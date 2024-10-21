@@ -15,7 +15,7 @@ const (
 )
 
 const (
-	MAX_REJECTIONS = 3
+	MAX_REASSIGNMENTS = 3
 )
 
 type RideDetails struct {
@@ -119,7 +119,7 @@ func RejectRide(rideID string) {
 	ride.numReassignments++
 
 	// if the number of rejections exceeds the limit, cancel the ride
-	if ride.numReassignments >= MAX_REJECTIONS {
+	if ride.numReassignments >= MAX_REASSIGNMENTS {
 		ride.status = CANCELLED
 	} else {
 		ride.status = WAITING
