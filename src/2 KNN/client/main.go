@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -91,6 +92,7 @@ func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint fl
 		wg.Add(1) // increment the wait group counter
 		go func(port string) {
 			defer wg.Done() // decrement the wait group counter when the goroutine is done
+
 			response, err := sendRequestToServer(port, dataPoint, numNearestNeighbours)
 			if err != nil {
 				log.Printf("[warning] could not contact server on port %s: %v", port, err)
@@ -99,7 +101,7 @@ func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint fl
 			
 			mu.Lock()
 			responses = append(responses, response)
-			mu.Unlock()
+			mu.Unlock()	
 		}(port)
 	}
 
@@ -136,9 +138,26 @@ func main() {
 	if err != nil {
 		log.Fatalf("error getting nearest neighbors: %v", err)
 	}
-	for _, neighbour := range nearest_neighbours {
-		fmt.Println(neighbour.DataPoint, "\t->\t", neighbour.Distance)
+
+	// let the file name contain num ports and data point 
+	fileName := fmt.Sprintf("nn_%d_%f.txt", len(ports), point)
+	file, err := os.OpenFile(fileName, os.O_CREATE | os.O_WRONLY | os.O_TRUNC, 0644)
+	if err != nil {
+		log.Fatalf("could not create or truncate file: %v", err)
+	}
+	defer file.Close()
+
+	appendAndPrint := func(data string) {
+		fmt.Println(data)
+		_, err := fmt.Fprintln(file, data)
+		if err != nil {
+			log.Fatalf("could not write to file: %v", err)
+		}
 	}
 
-	fmt.Printf("time taken: %v\n", endTime.Sub(startTime))
+	for _, neighbour := range nearest_neighbours {
+		appendAndPrint(fmt.Sprintf("%f\t->\t%f", neighbour.DataPoint, neighbour.Distance))
+	}
+
+	appendAndPrint(fmt.Sprintf("time taken: %v", endTime.Sub(startTime)))
 }
