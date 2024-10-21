@@ -84,7 +84,7 @@ func connectDriver(name string) error {
 		return fmt.Errorf("could not load TLS credentials: %v", err)
 	}
 
-	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "driver"), grpc.WithTransportCredentials(tlsCredentials))
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"), grpc.WithTransportCredentials(tlsCredentials))
 	if err != nil {
 		return fmt.Errorf("failed to connect to server: %v", err)
 	}

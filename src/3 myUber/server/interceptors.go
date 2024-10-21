@@ -34,7 +34,7 @@ func UnaryLoggingInterceptor(
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
-	clientID:= extractClientInfo(ctx)
+	clientID := extractClientInfo(ctx)
 	log.Printf("call -> method: %s, clientID: %s, request: %+v\n", info.FullMethod, clientID, req)
 
 	resp, err := handler(ctx, req)

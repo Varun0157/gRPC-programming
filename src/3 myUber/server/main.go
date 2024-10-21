@@ -32,7 +32,6 @@ func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*c
 }
 
 func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentRequest) (*comm.DriverAssignmentResponse, error) {
-	fmt.Println("assigning")
 	ride_id, _ := GetTopRequest()
 	fmt.Println("ride_id: ", ride_id)
 	return &comm.DriverAssignmentResponse{RideId: int32(ride_id)}, nil

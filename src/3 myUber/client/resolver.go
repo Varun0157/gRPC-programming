@@ -3,6 +3,7 @@ package main
 import (
 	utils "distsys/grpc-prog/myuber/client/utils"
 	"fmt"
+	"log"
 
 	"google.golang.org/grpc/resolver"
 )
@@ -12,13 +13,13 @@ const (
 )
 
 var (
-	ServiceNames = []string{"rider", "driver"}
-	portNums []int
+	ServiceNames = []string{"localhost"}
+	portNums     []int
 )
 
 type MyUberResolver struct {
-	target resolver.Target
-	cc     resolver.ClientConn
+	target     resolver.Target
+	cc         resolver.ClientConn
 	addrsStore map[string][]string
 }
 
@@ -33,25 +34,24 @@ func (r *MyUberResolver) start() {
 }
 
 func (r *MyUberResolver) ResolveNow(resolver.ResolveNowOptions) {}
-func (r *MyUberResolver) Close() {}
+func (r *MyUberResolver) Close()                                {}
 
-
-type MyUberResolverBuilder struct {}
+type MyUberResolverBuilder struct{}
 
 func (*MyUberResolverBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
-	var ports []string 
+	var ports []string
 	for _, portNum := range portNums {
 		ports = append(ports, fmt.Sprintf(":%d", portNum))
 	}
-	
+
 	var addrsMaps = make(map[string][]string)
 	for _, serviceName := range ServiceNames {
 		addrsMaps[serviceName] = ports
 	}
 
 	r := &MyUberResolver{
-		target: target,
-		cc:     cc,
+		target:     target,
+		cc:         cc,
 		addrsStore: addrsMaps,
 	}
 	r.start()
@@ -72,7 +72,7 @@ func init() {
 	if len(portNums) < 1 {
 		panic("no servers up!")
 	}
+	log.Println("ports: ", portNums)
 
 	resolver.Register(&MyUberResolverBuilder{})
 }
-
