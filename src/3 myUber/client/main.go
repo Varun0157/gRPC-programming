@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"strconv"
 )
 
 func getDriverDetails() (name string) {
@@ -33,10 +32,7 @@ func main() {
 		portIndex := 0
 
 		for {
-			port, err := strconv.Atoi(ports[portIndex])
-			if err != nil {
-				log.Fatalf("unable to convert port %s to int", ports[portIndex])
-			}
+			port := ports[portIndex]
 
 			err = connectDriver(name, port)
 			if err != nil {
@@ -61,10 +57,7 @@ func main() {
 
 	} else {
 		// choose a random port
-		port, err := strconv.Atoi(ports[rand.Intn(len(ports))])
-		if err != nil {
-			log.Fatalf("could not convert port to int: %v", err)
-		}
+		port := ports[rand.Intn(len(ports))]
 		err = connectRider(port)
 		if err != nil {
 			log.Fatalf("error creating rider client: %v", err)

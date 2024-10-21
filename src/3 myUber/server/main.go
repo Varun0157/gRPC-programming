@@ -65,9 +65,7 @@ func (s *server) CompleteRideRequest(ctx context.Context, req *comm.DriverComple
 	return &comm.DriverCompleteResponse{Success: true}, nil
 }
 
-// authorisation
 func loadTLSCredentials() (credentials.TransportCredentials, error) {
-	// Load certificate of the CA who signed server's certificate
 	pemClientCA, err := os.ReadFile("../certs/ca.crt")
 	if err != nil {
 		return nil, err

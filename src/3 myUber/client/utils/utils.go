@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"google.golang.org/grpc/credentials"
 )
 
-func ReadPortsFromFile(filePath string) ([]string, error) {
+func ReadPortsFromFile(filePath string) ([]int, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("could not open port file: %v", err)
@@ -38,15 +39,21 @@ func ReadPortsFromFile(filePath string) ([]string, error) {
 	}
 
 	// remove duplicates
-	ports = nil
+	var portNums []int
 	for port, count := range portCount {
 		if count > 1 {
 			log.Printf("[warning] port %s found %d times", port, count)
 		}
-		ports = append(ports, port)
+		portNum, err := strconv.Atoi(port)
+		if err != nil {
+			log.Printf("[warning] invalid port number: %s", port)
+			continue
+		}
+
+		portNums = append(portNums, portNum)
 	}
 
-	return ports, nil
+	return portNums, nil
 }
 
 func LoadTLSCredentials(clientType string) (credentials.TransportCredentials, error) {
