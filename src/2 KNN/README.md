@@ -21,7 +21,7 @@ You may alter the number of data points, number of floating digits, etc. in this
 
 #### Running
 ##### Single Command
-A sample launch script is provided in `launch.sh`. Simply run:
+A sample launch script is provided in `launch.sh`. Simply run (**assuming you have gnome-terminal**):
 ```sh
 bash launch.sh
 ```
