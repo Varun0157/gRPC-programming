@@ -7,7 +7,7 @@ bash ./proto.sh
 python create_data.py
 
 # number of servers to launch
-num_servers=14
+num_servers=12
 # The command you want to run in each terminal
 server_launch="go run server/main.go active_servers.txt"
 # Loop to open terminals
