@@ -43,7 +43,7 @@ func extractClientState(ctx context.Context) (clientState string) {
 	return
 }
 
-func UnaryLoggingInterceptor(
+func LoggingInterceptor(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,

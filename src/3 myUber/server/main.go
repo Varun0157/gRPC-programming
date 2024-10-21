@@ -35,21 +35,21 @@ func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*c
 
 	resp, err := GetRideStatus(req.RideId)
 	return &comm.RideStatusResponse{
-		Status:        resp.status,
-		Driver:        resp.driver,
+		Status:           resp.status,
+		Driver:           resp.driver,
 		NumReassignments: int32(resp.numReassignments),
-		Success:       err == nil,
+		Success:          err == nil,
 	}, nil
 }
 
 func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentRequest) (*comm.DriverAssignmentResponse, error) {
 	ride_id, rideDetails := GetTopRequest()
 	return &comm.DriverAssignmentResponse{
-		Success:       len(ride_id) > 0,
-		RideId:        ride_id,
-		Rider:         rideDetails.rider,
-		StartLocation: rideDetails.startLocation,
-		EndLocation:   rideDetails.endLocation,
+		Success:          len(ride_id) > 0,
+		RideId:           ride_id,
+		Rider:            rideDetails.rider,
+		StartLocation:    rideDetails.startLocation,
+		EndLocation:      rideDetails.endLocation,
 		NumReassignments: int32(rideDetails.numReassignments),
 	}, nil
 }
@@ -114,7 +114,7 @@ func loadTLSCredentials() (credentials.TransportCredentials, error) {
 		ClientCAs:    certPool,
 	}
 
-	// return the credentials 
+	// return the credentials
 	return credentials.NewTLS(config), nil
 }
 
@@ -131,7 +131,10 @@ func LaunchServer(portFilePath string) {
 		log.Fatalf("failed to load TLS credentials: %v", err)
 	}
 
-	s := grpc.NewServer(grpc.Creds(tlsCredentials), grpc.ChainUnaryInterceptor(AuthInterceptor, UnaryLoggingInterceptor, MetadataInterceptor))
+	s := grpc.NewServer(
+		grpc.Creds(tlsCredentials),
+		grpc.ChainUnaryInterceptor(AuthInterceptor, LoggingInterceptor, MetadataInterceptor),
+	)
 	comm.RegisterRiderServiceServer(s, &server{port: port})
 	comm.RegisterDriverServiceServer(s, &server{port: port})
 

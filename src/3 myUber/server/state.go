@@ -19,11 +19,11 @@ const (
 )
 
 type RideDetails struct {
-	rider         string
-	driver        string
-	startLocation string
-	endLocation   string
-	status        string
+	rider            string
+	driver           string
+	startLocation    string
+	endLocation      string
+	status           string
 	numReassignments int
 }
 
@@ -44,11 +44,11 @@ func RideExists(rideID string) bool {
 
 func AddRideRequest(req *comm.RideRequest, portNum int) string {
 	details := RideDetails{
-		rider:         req.Rider,
-		driver:        "",
-		startLocation: req.StartLocation,
-		endLocation:   req.EndLocation,
-		status:        WAITING,
+		rider:            req.Rider,
+		driver:           "",
+		startLocation:    req.StartLocation,
+		endLocation:      req.EndLocation,
+		status:           WAITING,
 		numReassignments: 0,
 	}
 

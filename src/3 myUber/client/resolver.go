@@ -82,13 +82,12 @@ func init() {
 	balancer.Register(newRandomPickerBuilder())
 }
 
-
 // custom load balancer
 type RandomPicker struct {
 	subConns []balancer.SubConn
 }
 
-func (p *RandomPicker)Pick(info balancer.PickInfo) (balancer.PickResult, error) {
+func (p *RandomPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	if len(p.subConns) == 0 {
 		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable
 	}
@@ -98,6 +97,7 @@ func (p *RandomPicker)Pick(info balancer.PickInfo) (balancer.PickResult, error) 
 }
 
 type randomPickerBuilder struct{}
+
 func (*randomPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 	if len(info.ReadySCs) == 0 {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
