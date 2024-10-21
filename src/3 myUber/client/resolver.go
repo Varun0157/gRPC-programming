@@ -11,20 +11,25 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
+/*
+custom load balancer
+*/
+
 // https://github.com/grpc/grpc-go/blob/master/examples/features/load_balancing/client/main.go#L108
+
 const (
 	SCHEME = "myuber"
 )
 
 var (
-	ServiceNames = []string{"localhost"} // todo: initially made it "rider" and "driver" but this broke something. Probably because you are only defining :%d in ports, try localhost:%d
+	ServiceNames = []string{"localhost"}
 	portNums     []int
 )
 
 type MyUberResolver struct {
-	target     resolver.Target
-	cc         resolver.ClientConn
-	addrsStore map[string][]string
+	target     resolver.Target     // target is the destination address for a gRPC call
+	cc         resolver.ClientConn // client connection instance
+	addrsStore map[string][]string // map of service names to their addresses, for now only one service name
 }
 
 func (r *MyUberResolver) start() {
@@ -34,14 +39,18 @@ func (r *MyUberResolver) start() {
 	for i, addrStr := range addrStrs {
 		addrs[i] = resolver.Address{Addr: addrStr}
 	}
+
+	// update the state of the client connetion with the new addresses
 	r.cc.UpdateState(resolver.State{Addresses: addrs})
 }
 
+// mentioned to implement the resolver.Resolver interface
 func (r *MyUberResolver) ResolveNow(resolver.ResolveNowOptions) {}
 func (r *MyUberResolver) Close()                                {}
 
 type MyUberResolverBuilder struct{}
 
+// returns a resolver instance
 func (*MyUberResolverBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
 	var ports []string
 	for _, portNum := range portNums {
@@ -58,7 +67,7 @@ func (*MyUberResolverBuilder) Build(target resolver.Target, cc resolver.ClientCo
 		cc:         cc,
 		addrsStore: addrsMaps,
 	}
-	r.start()
+	r.start() // implemented above: updates client connection state with server addresses
 
 	return r, nil
 }
@@ -67,22 +76,9 @@ func (*MyUberResolverBuilder) Scheme() string {
 	return SCHEME
 }
 
-func init() {
-	ports, err := utils.ReadPortsFromFile("../active_servers.txt")
-	if err != nil {
-		panic(fmt.Sprintf("could not read port file: %v", err))
-	}
-	portNums = ports
-	if len(portNums) < 1 {
-		panic("no servers up!")
-	}
-	log.Println("ports: ", portNums)
-
-	resolver.Register(&MyUberResolverBuilder{})
-	balancer.Register(newRandomPickerBuilder())
-}
-
-// custom load balancer
+/*
+custom load balancer
+*/
 type RandomPicker struct {
 	subConns []balancer.SubConn
 }
@@ -92,12 +88,14 @@ func (p *RandomPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error)
 		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable
 	}
 
+	// pick a random subconnection
 	randomIndex := rand.Intn(len(p.subConns))
 	return balancer.PickResult{SubConn: p.subConns[randomIndex]}, nil
 }
 
 type randomPickerBuilder struct{}
 
+// returns a new random picker instance
 func (*randomPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 	if len(info.ReadySCs) == 0 {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
@@ -113,4 +111,19 @@ func (*randomPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 
 func newRandomPickerBuilder() balancer.Builder {
 	return base.NewBalancerBuilder("random_picker", &randomPickerBuilder{}, base.Config{HealthCheck: true})
+}
+
+func init() {
+	ports, err := utils.ReadPortsFromFile("../active_servers.txt")
+	if err != nil {
+		panic(fmt.Sprintf("could not read port file: %v", err))
+	}
+	portNums = ports
+	if len(portNums) < 1 {
+		panic("no servers up!")
+	}
+	log.Println("ports: ", portNums)
+
+	resolver.Register(&MyUberResolverBuilder{})
+	balancer.Register(newRandomPickerBuilder())
 }

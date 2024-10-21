@@ -64,20 +64,26 @@ func AuthInterceptor(
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
+	// extract peer (client) information from the context
 	p, ok := peer.FromContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.Unauthenticated, "no peer found")
 	}
 
+	// get the TLS credentials from the peer information
 	tlsAuth, ok := p.AuthInfo.(credentials.TLSInfo)
 	if !ok {
 		return nil, status.Errorf(codes.Unauthenticated, "unexpected peer transport credentials")
 	}
 
+	// when a client connects, mutual TLS authentication is performed
+	// 		for each incoming request, we perform additional checks as below
+	// verify that the client has been authenticated
 	if len(tlsAuth.State.VerifiedChains) == 0 || len(tlsAuth.State.VerifiedChains[0]) == 0 {
 		return nil, status.Errorf(codes.Unauthenticated, "could not verify peer certificate")
 	}
 
+	// extract the client's subject (Common Name) from the certificate and check if it is allowed to access the service
 	subject := tlsAuth.State.VerifiedChains[0][0].Subject.CommonName
 	if strings.Contains(info.FullMethod, "RiderService") && !strings.Contains(subject, "Rider") {
 		return nil, status.Errorf(codes.PermissionDenied, "only Rider can use RiderService")

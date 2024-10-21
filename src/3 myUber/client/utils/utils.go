@@ -57,12 +57,13 @@ func ReadPortsFromFile(filePath string) ([]int, error) {
 }
 
 func LoadTLSCredentials(clientType string) (credentials.TransportCredentials, error) {
-	// Load certificate of the CA who signed server's certificate
+	// load certificate of the CA who signed server's certificate
 	pemClientCA, err := os.ReadFile("../certs/ca.crt")
 	if err != nil {
 		return nil, err
 	}
 
+	// create a new certificate pool, and add server CA's certificate
 	certPool := x509.NewCertPool()
 	if !certPool.AppendCertsFromPEM(pemClientCA) {
 		return nil, fmt.Errorf("failed to add server CA's certificate")
@@ -76,7 +77,7 @@ func LoadTLSCredentials(clientType string) (credentials.TransportCredentials, er
 
 	config := &tls.Config{
 		Certificates: []tls.Certificate{clientCert},
-		RootCAs:      certPool,
+		RootCAs:      certPool, // as we want to verify server's certificate
 	}
 
 	// Create the credentials and return it
