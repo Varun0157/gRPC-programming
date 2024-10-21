@@ -55,8 +55,8 @@ func partitionData(ports []string, dataPoints []float64) error {
 	var REMAINDER int = NUM_DATA_POINTS % NUM_SERVERS
 
 	getBounds := func(i int) (int, int) {
-		var start int = i * BASE_SIZE + min(i, REMAINDER)
-		var clusterSize int = BASE_SIZE 
+		var start int = i*BASE_SIZE + min(i, REMAINDER)
+		var clusterSize int = BASE_SIZE
 		if i < REMAINDER {
 			clusterSize++
 		}
