@@ -2,7 +2,7 @@
 
 import random
 
-N = int(5e5)
+N = int(5e4)
 MAX_MAGNITUDE = 10000
 filename = "data.txt"
 

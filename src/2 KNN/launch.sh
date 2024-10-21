@@ -7,7 +7,7 @@ bash ./proto.sh
 python create_data.py
 
 # number of servers to launch
-num_servers=10
+num_servers=14
 # The command you want to run in each terminal
 server_launch="go run server/main.go active_servers.txt"
 # Loop to open terminals
@@ -15,6 +15,8 @@ for ((i=1; i<=$num_servers; i++))
 do
     gnome-terminal -- bash -c "$server_launch" # todo: generalise
 done
+
+sleep 2
 
 # send the data to each server 
 go run send-data/main.go 

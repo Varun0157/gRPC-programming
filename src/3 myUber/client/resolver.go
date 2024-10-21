@@ -12,7 +12,7 @@ import (
 )
 
 /*
-custom load balancer
+custom resolver
 */
 
 // https://github.com/grpc/grpc-go/blob/master/examples/features/load_balancing/client/main.go#L108
