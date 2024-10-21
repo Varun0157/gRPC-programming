@@ -27,14 +27,15 @@ func getRiderDetails() (name string, source string, dest string) {
 	return name, source, dest
 }
 
-func createRiderClient() {
+func createRiderClient(loadBalancer string) {
 	tlsCredentials, err := utils.LoadTLSCredentials("rider")
 	if err != nil {
 		log.Fatalf("could not load TLS credentials: %v", err)
 	}
 
-	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"),
-		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+	conn, err := grpc.NewClient(
+		fmt.Sprintf("%s:///%s", SCHEME, "localhost"),
+		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]}`, loadBalancer)),
 		grpc.WithTransportCredentials(tlsCredentials),
 	)
 
@@ -51,14 +52,14 @@ func createRiderClient() {
 	}
 }
 
-func createDriverClient() {
+func createDriverClient(loadBalancer string) {
 	tlsCredentials, err := utils.LoadTLSCredentials("driver")
 	if err != nil {
 		log.Fatalf("could not load TLS credentials: %v", err)
 	}
 
 	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "localhost"),
-		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+	grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]}`, loadBalancer)),
 		grpc.WithTransportCredentials(tlsCredentials),
 	)
 	if err != nil {
@@ -90,11 +91,12 @@ func main() {
 	fmt.Println("rider or driver (r/d)?")
 	fmt.Scan(&choice)
 
-	if choice == "d" {
-		createDriverClient()
-	} else if choice == "r" {
-		createRiderClient()
-	} else {
+	switch choice {
+	case "d":
+		createDriverClient("random_picker")
+	case "r":
+		createRiderClient("random_picker")
+	default:
 		fmt.Println("invalid choice")
 	}
 

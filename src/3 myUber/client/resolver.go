@@ -4,18 +4,20 @@ import (
 	utils "distsys/grpc-prog/myuber/client/utils"
 	"fmt"
 	"log"
+	"math/rand"
 
+	"google.golang.org/grpc/balancer"
+	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/resolver"
 )
 
 // https://github.com/grpc/grpc-go/blob/master/examples/features/load_balancing/client/main.go#L108
-
 const (
 	SCHEME = "myuber"
 )
 
 var (
-	ServiceNames = []string{"localhost"}
+	ServiceNames = []string{"localhost"} // todo: initially made it "rider" and "driver" but this broke something. Probably because you are only defining :%d in ports, try localhost:%d
 	portNums     []int
 )
 
@@ -77,4 +79,38 @@ func init() {
 	log.Println("ports: ", portNums)
 
 	resolver.Register(&MyUberResolverBuilder{})
+	balancer.Register(newRandomPickerBuilder())
+}
+
+
+// custom load balancer
+type RandomPicker struct {
+	subConns []balancer.SubConn
+}
+
+func (p *RandomPicker)Pick(info balancer.PickInfo) (balancer.PickResult, error) {
+	if len(p.subConns) == 0 {
+		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable
+	}
+
+	randomIndex := rand.Intn(len(p.subConns))
+	return balancer.PickResult{SubConn: p.subConns[randomIndex]}, nil
+}
+
+type randomPickerBuilder struct{}
+func (*randomPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
+	if len(info.ReadySCs) == 0 {
+		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
+	}
+
+	var subConns []balancer.SubConn
+	for sc := range info.ReadySCs {
+		subConns = append(subConns, sc)
+	}
+
+	return &RandomPicker{subConns: subConns}
+}
+
+func newRandomPickerBuilder() balancer.Builder {
+	return base.NewBalancerBuilder("random_picker", &randomPickerBuilder{}, base.Config{HealthCheck: true})
 }

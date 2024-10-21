@@ -53,9 +53,9 @@ func connectRider(conn *grpc.ClientConn, name string, source string, dest string
 				continue
 			}
 
-			fmt.Printf("status: 		%s\n", statusResponse.Status)
-			fmt.Printf("driver: 		%s\n", statusResponse.Driver)
-			fmt.Printf("num rejections: %d\n", statusResponse.NumRejections)
+			fmt.Printf("status: 		 %s\n", statusResponse.Status)
+			fmt.Printf("driver: 		 %s\n", statusResponse.Driver)
+			fmt.Printf("num rejections:  %d\n", statusResponse.NumRejections)
 			break
 		}
 	}

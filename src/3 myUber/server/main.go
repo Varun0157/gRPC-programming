@@ -113,7 +113,7 @@ func loadTLSCredentials() (credentials.TransportCredentials, error) {
 		ClientCAs:    certPool,
 	}
 
-	// Create the credentials and return it
+	// return the credentials 
 	return credentials.NewTLS(config), nil
 }
 
