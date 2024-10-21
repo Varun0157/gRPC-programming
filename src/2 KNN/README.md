@@ -7,6 +7,7 @@ Since this is a `go` program, the dependencies can be downloaded simply by runni
 go mod tidy
 ```
 
+To set up protobuf for golang, install go plugins for the protocol compiler as [in the docs](https://grpc.io/docs/languages/go/quickstart/). 
 You can build from the protobuf files, by running 
 ```sh
 bash proto.sh
