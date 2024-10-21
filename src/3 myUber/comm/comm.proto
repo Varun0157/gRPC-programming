@@ -15,12 +15,12 @@ message RideRequest {
 }
 
 message RideResponse {
-    int32 ride_id = 1;
+    string ride_id = 1;
     bool success = 2;
 }
 
 message RideStatusRequest {
-    int32 ride_id = 1;
+    string ride_id = 1;
 }
 
 message RideStatusResponse {
@@ -42,11 +42,12 @@ message DriverAssignmentRequest {
 }
 
 message DriverAssignmentResponse {
-    int32 ride_id = 1;
+    string ride_id = 1;
+    bool success = 2;
 }
 
 message DriverAcceptRequest {
-    int32 ride_id = 1;
+    string ride_id = 1;
     string driver = 2;
 }
 
@@ -55,7 +56,7 @@ message DriverAcceptResponse {
 }
 
 message DriverRejectRequest {
-    int32 ride_id = 1;
+    string ride_id = 1;
 }
 
 message DriverRejectResponse {
@@ -63,7 +64,7 @@ message DriverRejectResponse {
 }
 
 message DriverCompleteRequest {
-    int32 ride_id = 1;
+    string ride_id = 1;
 }
 
 message DriverCompleteResponse {
@@ -71,7 +72,7 @@ message DriverCompleteResponse {
 }
 
 message DriverTimeoutRequest {
-    int32 ride_id = 1;
+    string ride_id = 1;
 }
 
 message DriverTimeoutResponse {

@@ -42,7 +42,7 @@ func connectRider(conn *grpc.ClientConn, name string, source string, dest string
 		for {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			statusResponse, err := client.GetStatus(ctx, &comm.RideStatusRequest{
-				RideId: int32(rideResponse.RideId),
+				RideId: rideResponse.RideId,
 			})
 			cancel()	
 			

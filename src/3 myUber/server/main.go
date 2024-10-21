@@ -19,48 +19,65 @@ import (
 type server struct {
 	comm.UnimplementedRiderServiceServer
 	comm.UnimplementedDriverServiceServer
+	port int 
 }
 
 func (s *server) RequestRide(ctx context.Context, req *comm.RideRequest) (*comm.RideResponse, error) {
-	rideID := AddRideRequest(req)
-	return &comm.RideResponse{RideId: int32(rideID)}, nil
+	rideID := AddRideRequest(req, s.port)
+	return &comm.RideResponse{RideId: rideID}, nil
 }
 
 func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*comm.RideStatusResponse, error) {
-	status, err := GetRideStatus(int(req.RideId))
+	if !RideExists(req.RideId) {
+		return &comm.RideStatusResponse{Status: "does not exist", Success: false}, nil
+	}
+	
+	status, err := GetRideStatus(req.RideId)
 	return &comm.RideStatusResponse{Status: status, Success: err == nil}, nil
 }
 
 func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentRequest) (*comm.DriverAssignmentResponse, error) {
 	ride_id, _ := GetTopRequest()
-	fmt.Println("ride_id: ", ride_id)
-	return &comm.DriverAssignmentResponse{RideId: int32(ride_id)}, nil
+	return &comm.DriverAssignmentResponse{RideId: ride_id, Success: len(ride_id) > 0}, nil
 }
 
 func (s *server) AcceptRideRequest(ctx context.Context, req *comm.DriverAcceptRequest) (*comm.DriverAcceptResponse, error) {
-	AcceptRide(int(req.RideId), req.Driver)
+	if !RideExists(req.RideId) {
+		return &comm.DriverAcceptResponse{Success: false}, nil
+	}
 
+	AcceptRide(req.RideId, req.Driver)
 	return &comm.DriverAcceptResponse{Success: true}, nil
 }
 
 func (s *server) RejectRideRequest(ctx context.Context, req *comm.DriverRejectRequest) (*comm.DriverRejectResponse, error) {
-	rideId := int(req.RideId)
-	RejectRide(rideId)
+	rideId := req.RideId
 
+	if !RideExists(rideId) {
+		return &comm.DriverRejectResponse{Success: false}, nil
+	}
+
+	RejectRide(rideId)
 	return &comm.DriverRejectResponse{Success: true}, nil
 }
 
 func (s *server) TimeoutRideRequest(ctx context.Context, req *comm.DriverTimeoutRequest) (*comm.DriverTimeoutResponse, error) {
-	rideId := int(req.RideId)
+	rideId := req.RideId
+	if !RideExists(rideId) {
+		return &comm.DriverTimeoutResponse{Success: false}, nil 
+	}
+	
 	TimeoutRide(rideId)
-
 	return &comm.DriverTimeoutResponse{Success: true}, nil
 }
 
 func (s *server) CompleteRideRequest(ctx context.Context, req *comm.DriverCompleteRequest) (*comm.DriverCompleteResponse, error) {
-	rideId := int(req.RideId)
-	CompleteRide(rideId)
+	rideId := req.RideId
+	if !RideExists(rideId) {
+		return &comm.DriverCompleteResponse{Success: false}, nil 
+	}
 
+	CompleteRide(rideId)
 	return &comm.DriverCompleteResponse{Success: true}, nil
 }
 
@@ -105,8 +122,8 @@ func LaunchServer(portFilePath string) {
 	}
 
 	s := grpc.NewServer(grpc.Creds(tlsCredentials), grpc.ChainUnaryInterceptor(UnaryLoggingInterceptor, AuthInterceptor))
-	comm.RegisterRiderServiceServer(s, &server{})
-	comm.RegisterDriverServiceServer(s, &server{})
+	comm.RegisterRiderServiceServer(s, &server{port: port})
+	comm.RegisterDriverServiceServer(s, &server{port: port})
 
 	// terminate on ^C
 	stop := make(chan os.Signal, 1)
