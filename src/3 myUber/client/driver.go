@@ -138,7 +138,7 @@ func connectDriver(conn *grpc.ClientConn, name string) error {
 
 		go func() {
 			reader := bufio.NewReader(os.Stdin)
-			fmt.Println("do you want to accept or reject ride? (a/r)")
+			fmt.Println("do you want to accept or reject ride? (<anything>/r)")
 			text, _ := reader.ReadString('\n')
 
 			inputChan <- text
@@ -150,7 +150,7 @@ func connectDriver(conn *grpc.ClientConn, name string) error {
 
 		case <-ctx.Done():
 			cancel()
-			fmt.Printf("timeout of %ds hit, are you still there?\n", WAIT_TIME)
+			fmt.Printf("timeout of %ds hit, are you still there? (press enter)\n", WAIT_TIME)
 
 			err = timeoutHit(client, rideResponse.RideId)
 			if err != nil {
@@ -176,7 +176,7 @@ func connectDriver(conn *grpc.ClientConn, name string) error {
 			return err
 		}
 
-		fmt.Println("press the enter key to complete ride")
+		fmt.Println("press enter to complete ride")
 		fmt.Scanln()
 		err = completeRide(client, rideResponse.RideId)
 		if err != nil {

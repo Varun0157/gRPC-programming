@@ -74,7 +74,7 @@ func createDriverClient() {
 		}
 
 		var choice string
-		fmt.Print("try again? (y/n)")
+		fmt.Print("try again? (<anything>/n)")
 		fmt.Scan(&choice)
 
 		if choice == "n" {
@@ -92,8 +92,10 @@ func main() {
 
 	if choice == "d" {
 		createDriverClient()
-	} else {
+	} else if choice == "r" {
 		createRiderClient()
+	} else {
+		fmt.Println("invalid choice")
 	}
 
 	utils.PrintLines(10)
