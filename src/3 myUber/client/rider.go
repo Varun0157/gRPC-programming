@@ -28,7 +28,6 @@ func connectRider(conn *grpc.ClientConn, name string, source string, dest string
 	log.Printf("ride requested, id: %s", rideResponse.RideId)
 
 	for {
-		// allow the rider to keep getting ride status, or exit this ride tracking entirely (break condition)
 		var choice string
 		fmt.Println("do you want to check the status of your ride? (<anything>/n)")
 		fmt.Scan(&choice)
@@ -39,7 +38,7 @@ func connectRider(conn *grpc.ClientConn, name string, source string, dest string
 
 		log.Println("checking ride status... ")
 		for {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), getRequestTimeout())
 			statusResponse, err := client.GetStatus(ctx, &comm.RideStatusRequest{
 				RideId: rideResponse.RideId,
 			})
@@ -54,8 +53,8 @@ func connectRider(conn *grpc.ClientConn, name string, source string, dest string
 				continue
 			}
 
-			fmt.Printf("status: %s\n", statusResponse.Status)
-			fmt.Printf("driver: %s\n", statusResponse.Driver)
+			fmt.Printf("status: 		%s\n", statusResponse.Status)
+			fmt.Printf("driver: 		%s\n", statusResponse.Driver)
 			fmt.Printf("num rejections: %d\n", statusResponse.NumRejections)
 			break
 		}
