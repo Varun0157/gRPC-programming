@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func listenOnPort() (lis net.Listener, port int, err error) {
+func ListenOnPort() (lis net.Listener, port int, err error) {
 	for {
 		port = rand.Intn(65535-1024) + 1024
 		lis, err = net.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -24,7 +24,7 @@ func listenOnPort() (lis net.Listener, port int, err error) {
 	return lis, port, nil
 }
 
-func appendPortToFile(port int, portFilePath string) error {
+func AppendPortToFile(port int, portFilePath string) error {
 	file, err := os.OpenFile(portFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func appendPortToFile(port int, portFilePath string) error {
 	return err
 }
 
-func removePortFromFile(port int, portFilePath string) error {
+func RemovePortFromFile(port int, portFilePath string) error {
 	content, err := os.ReadFile(portFilePath)
 	if err != nil {
 		return err

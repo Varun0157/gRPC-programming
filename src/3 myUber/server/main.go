@@ -11,6 +11,7 @@ import (
 	"syscall"
 
 	comm "distsys/grpc-prog/myuber/comm"
+	utils "distsys/grpc-prog/myuber/server/utils"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -117,10 +118,10 @@ func loadTLSCredentials() (credentials.TransportCredentials, error) {
 }
 
 func LaunchServer(portFilePath string) {
-	lis, port, nil := listenOnPort()
+	lis, port, nil := utils.ListenOnPort()
 	log.Printf("server listening on port %d", port)
 
-	if err := appendPortToFile(port, portFilePath); err != nil {
+	if err := utils.AppendPortToFile(port, portFilePath); err != nil {
 		log.Fatalf("failed to append port to file: %v", err)
 	}
 
@@ -148,7 +149,7 @@ func LaunchServer(portFilePath string) {
 	log.Println("shutting down server...")
 	s.GracefulStop()
 
-	if err := removePortFromFile(port, portFilePath); err != nil {
+	if err := utils.RemovePortFromFile(port, portFilePath); err != nil {
 		log.Printf("failed to remove port from file: %v", err)
 	} else {
 		log.Printf("port removed from %s", portFilePath)
