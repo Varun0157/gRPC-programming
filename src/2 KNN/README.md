@@ -49,5 +49,4 @@ go run client/main.go --port_file=active_servers.txt
 ```
 
 The output is printed to the terminal, and written to the file `nn_<num-nearest>_<data-point>.txt`. Note that the client need not be aware of the amount of data-points in each server. 
-
-
+Each line of the output is of the form `<nearest-neighbour> -> <distance-from-datapoint>`, until the time taken at the end. 
