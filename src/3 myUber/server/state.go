@@ -132,20 +132,19 @@ func RejectRide(rideID string) {
 	Rides[rideID] = ride
 }
 
-func TimeoutRide(rideID string) {
-	rideMutex.Lock()
-	defer rideMutex.Unlock()
+// func TimeoutRide(rideID string) {
+// 	rideMutex.Lock()
+// 	defer rideMutex.Unlock()
 
-	assignMutex.Lock()
-	defer assignMutex.Unlock()
+// 	assignMutex.Lock()
+// 	defer assignMutex.Unlock()
 
-	ride := Rides[rideID]
-	ride.status = WAITING
-	ride.numReassignments++
-	Rides[rideID] = ride
+// 	ride := Rides[rideID]
+// 	ride.status = WAITING
+// 	Rides[rideID] = ride
 
-	toAssign = append(toAssign, rideID)
-}
+// 	toAssign = append(toAssign, rideID)
+// }
 
 func CompleteRide(rideID string) {
 	rideMutex.Lock()

@@ -77,7 +77,8 @@ func (s *server) TimeoutRideRequest(ctx context.Context, req *comm.DriverTimeout
 		return &comm.DriverTimeoutResponse{Success: false}, nil
 	}
 
-	TimeoutRide(req.RideId)
+	// TimeoutRide(req.RideId)
+	RejectRide(req.RideId)
 	return &comm.DriverTimeoutResponse{Success: true}, nil
 }
 
