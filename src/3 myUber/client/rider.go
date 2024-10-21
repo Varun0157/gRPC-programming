@@ -11,24 +11,13 @@ import (
 	comm "distsys/grpc-prog/myuber/comm"
 )
 
-func getRiderDetails() (name string, source string, dest string) {
-	fmt.Println("Enter your name: ")
-	fmt.Scan(&name)
-	fmt.Println("Enter your source loc: ")
-	fmt.Scan(&source)
-	fmt.Println("Enter your destination: ")
-	fmt.Scan(&dest)
-
-	return name, source, dest
-}
-
-func connectRider(port int) error {
+func connectRider(name string, source string, dest string) error {
 	tlsCredentials, err := utils.LoadTLSCredentials("rider")
 	if err != nil {
 		return fmt.Errorf("could not load TLS credentials: %v", err)
 	}
 
-	conn, err := grpc.NewClient(fmt.Sprintf(":%d", port), grpc.WithTransportCredentials(tlsCredentials))
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:///%s", SCHEME, "rider"), grpc.WithTransportCredentials(tlsCredentials))
 	if err != nil {
 		return fmt.Errorf("failed to connect to server: %v", err)
 	}
@@ -36,7 +25,6 @@ func connectRider(port int) error {
 	defer conn.Close()
 
 	client := comm.NewRiderServiceClient(conn)
-	name, source, dest := getRiderDetails()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	rideResponse, err := client.RequestRide(ctx, &comm.RideRequest{

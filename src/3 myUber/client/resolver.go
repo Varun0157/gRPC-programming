@@ -69,6 +69,9 @@ func init() {
 		panic(fmt.Sprintf("could not read port file: %v", err))
 	}
 	portNums = ports
+	if len(portNums) < 1 {
+		panic("no servers up!")
+	}
 
 	resolver.Register(&MyUberResolverBuilder{})
 }

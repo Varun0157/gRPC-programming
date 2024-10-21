@@ -1,10 +1,8 @@
 package main
 
 import (
-	utils "distsys/grpc-prog/myuber/client/utils"
 	"fmt"
 	"log"
-	"math/rand"
 )
 
 func getDriverDetails() (name string) {
@@ -14,27 +12,26 @@ func getDriverDetails() (name string) {
 	return name
 }
 
-func main() {
-	ports, err := utils.ReadPortsFromFile("../active_servers.txt")
-	if err != nil {
-		log.Fatalf("could not read port file: %v", err)
-	}
-	if len(ports) < 1 {
-		log.Fatalf("no servers up!")
-	}
+func getRiderDetails() (name string, source string, dest string) {
+	fmt.Println("Enter your name: ")
+	fmt.Scan(&name)
+	fmt.Println("Enter your source loc: ")
+	fmt.Scan(&source)
+	fmt.Println("Enter your destination: ")
+	fmt.Scan(&dest)
 
+	return name, source, dest
+}
+
+func main() {
 	var choice string
 	fmt.Println("rider or driver (r/d)?")
 	fmt.Scan(&choice)
 
 	if choice == "d" {
 		name := getDriverDetails()
-		portIndex := 0
-
 		for {
-			port := ports[portIndex]
-
-			err = connectDriver(name, port)
+			err := connectDriver(name)
 			if err != nil {
 				log.Fatalf("error creating driver client %v", err)
 			}
@@ -46,19 +43,12 @@ func main() {
 			if choice == "n" {
 				break
 			}
-
-			nextPort := portIndex + 1
-			if nextPort == len(ports) {
-				log.Print("all servers accessed, try again later!")
-			}
-
-			portIndex = nextPort % len(ports)
 		}
 
 	} else {
+		name, source, dest := getRiderDetails()
 		// choose a random port
-		port := ports[rand.Intn(len(ports))]
-		err = connectRider(port)
+		err := connectRider(name, source, dest)
 		if err != nil {
 			log.Fatalf("error creating rider client: %v", err)
 		}
