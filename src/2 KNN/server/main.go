@@ -27,7 +27,10 @@ type server struct {
 	dataset []float64
 }
 
-func (s *server) FindKNearestNeighbors(ctx context.Context, req *knn.KNNRequest) (*knn.KNNResponse, error) {
+func (s *server) FindKNearestNeighbors(
+	ctx context.Context,
+	req *knn.KNNRequest,
+) (*knn.KNNResponse, error) {
 	nnHeap := utils.NeighbourHeap{}
 	heap.Init(&nnHeap)
 
@@ -46,7 +49,10 @@ func (s *server) FindKNearestNeighbors(ctx context.Context, req *knn.KNNRequest)
 	var neighbours []*knn.Neighbour
 	for nnHeap.Len() > 0 {
 		neighbour := heap.Pop(&nnHeap).(utils.NeighbourInfo)
-		neighbours = append(neighbours, &knn.Neighbour{DataPoint: neighbour.DataPoint, Distance: neighbour.Distance})
+		neighbours = append(
+			neighbours,
+			&knn.Neighbour{DataPoint: neighbour.DataPoint, Distance: neighbour.Distance},
+		)
 	}
 
 	return &knn.KNNResponse{Neighbours: neighbours}, nil

@@ -52,7 +52,10 @@ func mergeNearestNeighbours(nns [][]utils.NeighbourInfo, k int) []utils.Neighbou
 
 // return the neighbours from a specific server
 func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.NeighbourInfo), error) {
-	conn, err := grpc.NewClient(fmt.Sprintf(":%s", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(
+		fmt.Sprintf(":%s", port),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to server: %v", err)
 	}
@@ -75,13 +78,20 @@ func sendRequestToServer(port string, dataPoint float64, k int) ([](utils.Neighb
 
 	var neighbours []utils.NeighbourInfo
 	for _, neighbour := range resp.Neighbours {
-		neighbours = append(neighbours, utils.NeighbourInfo{DataPoint: neighbour.DataPoint, Distance: neighbour.Distance})
+		neighbours = append(
+			neighbours,
+			utils.NeighbourInfo{DataPoint: neighbour.DataPoint, Distance: neighbour.Distance},
+		)
 	}
 
 	return neighbours, nil
 }
 
-func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint float64) ([]utils.NeighbourInfo, error) {
+func getKNearestNeighbors(
+	ports []string,
+	numNearestNeighbours int,
+	dataPoint float64,
+) ([]utils.NeighbourInfo, error) {
 	var mu sync.Mutex
 	var responses [][]utils.NeighbourInfo
 
@@ -112,7 +122,11 @@ func getKNearestNeighbors(ports []string, numNearestNeighbours int, dataPoint fl
 }
 
 func main() {
-	portFilePath := flag.String("port_file", "active_servers.txt", "file to write active server ports to")
+	portFilePath := flag.String(
+		"port_file",
+		"active_servers.txt",
+		"file to write active server ports to",
+	)
 	flag.Parse()
 
 	if !utils.IsFlagPassed("port_file") {

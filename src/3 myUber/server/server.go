@@ -14,12 +14,18 @@ type server struct {
 /*
 RiderService
 */
-func (s *server) RequestRide(ctx context.Context, req *comm.RideRequest) (*comm.RideResponse, error) {
+func (s *server) RequestRide(
+	ctx context.Context,
+	req *comm.RideRequest,
+) (*comm.RideResponse, error) {
 	rideID := AddRideRequest(req, s.port)
 	return &comm.RideResponse{RideId: rideID}, nil
 }
 
-func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*comm.RideStatusResponse, error) {
+func (s *server) GetStatus(
+	ctx context.Context,
+	req *comm.RideStatusRequest,
+) (*comm.RideStatusResponse, error) {
 	if !RideExists(req.RideId) {
 		return &comm.RideStatusResponse{Status: "ride does not exist", Success: false}, nil
 	}
@@ -36,7 +42,10 @@ func (s *server) GetStatus(ctx context.Context, req *comm.RideStatusRequest) (*c
 /*
 DriverService
 */
-func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentRequest) (*comm.DriverAssignmentResponse, error) {
+func (s *server) AssignDriver(
+	ctx context.Context,
+	req *comm.DriverAssignmentRequest,
+) (*comm.DriverAssignmentResponse, error) {
 	ride_id, rideDetails := GetTopRequest()
 	return &comm.DriverAssignmentResponse{
 		Success:          len(ride_id) > 0,
@@ -48,7 +57,10 @@ func (s *server) AssignDriver(ctx context.Context, req *comm.DriverAssignmentReq
 	}, nil
 }
 
-func (s *server) AcceptRideRequest(ctx context.Context, req *comm.DriverAcceptRequest) (*comm.DriverAcceptResponse, error) {
+func (s *server) AcceptRideRequest(
+	ctx context.Context,
+	req *comm.DriverAcceptRequest,
+) (*comm.DriverAcceptResponse, error) {
 	if !RideExists(req.RideId) {
 		return &comm.DriverAcceptResponse{Success: false}, nil
 	}
@@ -57,7 +69,10 @@ func (s *server) AcceptRideRequest(ctx context.Context, req *comm.DriverAcceptRe
 	return &comm.DriverAcceptResponse{Success: true}, nil
 }
 
-func (s *server) RejectRideRequest(ctx context.Context, req *comm.DriverRejectRequest) (*comm.DriverRejectResponse, error) {
+func (s *server) RejectRideRequest(
+	ctx context.Context,
+	req *comm.DriverRejectRequest,
+) (*comm.DriverRejectResponse, error) {
 	if !RideExists(req.RideId) {
 		return &comm.DriverRejectResponse{Success: false}, nil
 	}
@@ -66,7 +81,10 @@ func (s *server) RejectRideRequest(ctx context.Context, req *comm.DriverRejectRe
 	return &comm.DriverRejectResponse{Success: true}, nil
 }
 
-func (s *server) TimeoutRideRequest(ctx context.Context, req *comm.DriverTimeoutRequest) (*comm.DriverTimeoutResponse, error) {
+func (s *server) TimeoutRideRequest(
+	ctx context.Context,
+	req *comm.DriverTimeoutRequest,
+) (*comm.DriverTimeoutResponse, error) {
 	if !RideExists(req.RideId) {
 		return &comm.DriverTimeoutResponse{Success: false}, nil
 	}
@@ -76,7 +94,10 @@ func (s *server) TimeoutRideRequest(ctx context.Context, req *comm.DriverTimeout
 	return &comm.DriverTimeoutResponse{Success: true}, nil
 }
 
-func (s *server) CompleteRideRequest(ctx context.Context, req *comm.DriverCompleteRequest) (*comm.DriverCompleteResponse, error) {
+func (s *server) CompleteRideRequest(
+	ctx context.Context,
+	req *comm.DriverCompleteRequest,
+) (*comm.DriverCompleteResponse, error) {
 	if !RideExists(req.RideId) {
 		return &comm.DriverCompleteResponse{Success: false}, nil
 	}

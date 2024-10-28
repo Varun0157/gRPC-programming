@@ -66,7 +66,10 @@ func partitionData(ports []string, dataPoints []float64) error {
 	}
 
 	sendData := func(i int, port string) (int, int, error) {
-		conn, err := grpc.NewClient(fmt.Sprintf(":%s", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err := grpc.NewClient(
+			fmt.Sprintf(":%s", port),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
 		if err != nil {
 			return -1, -1, fmt.Errorf("failed to connect to server: %v", err)
 		}

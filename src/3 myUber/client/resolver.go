@@ -51,7 +51,11 @@ func (r *MyUberResolver) Close()                                {}
 type MyUberResolverBuilder struct{}
 
 // returns a resolver instance
-func (*MyUberResolverBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
+func (*MyUberResolverBuilder) Build(
+	target resolver.Target,
+	cc resolver.ClientConn,
+	opts resolver.BuildOptions,
+) (resolver.Resolver, error) {
 	var ports []string
 	for _, portNum := range portNums {
 		ports = append(ports, fmt.Sprintf(":%d", portNum))
@@ -110,7 +114,11 @@ func (*randomPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 }
 
 func newRandomPickerBuilder() balancer.Builder {
-	return base.NewBalancerBuilder("random_picker", &randomPickerBuilder{}, base.Config{HealthCheck: true})
+	return base.NewBalancerBuilder(
+		"random_picker",
+		&randomPickerBuilder{},
+		base.Config{HealthCheck: true},
+	)
 }
 
 func init() {

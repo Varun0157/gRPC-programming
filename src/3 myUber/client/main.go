@@ -35,7 +35,9 @@ func createRiderClient(loadBalancer string) {
 
 	conn, err := grpc.NewClient(
 		fmt.Sprintf("%s:///%s", SCHEME, "localhost"),
-		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]}`, loadBalancer)),
+		grpc.WithDefaultServiceConfig(
+			fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]}`, loadBalancer),
+		),
 		grpc.WithTransportCredentials(tlsCredentials),
 	)
 
@@ -60,7 +62,9 @@ func createDriverClient(loadBalancer string) {
 
 	conn, err := grpc.NewClient(
 		fmt.Sprintf("%s:///%s", SCHEME, "localhost"),
-		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]}`, loadBalancer)),
+		grpc.WithDefaultServiceConfig(
+			fmt.Sprintf(`{"loadBalancingConfig": [{"%s":{}}]}`, loadBalancer),
+		),
 		grpc.WithTransportCredentials(tlsCredentials),
 	)
 	if err != nil {

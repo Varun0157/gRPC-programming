@@ -50,10 +50,21 @@ func LoggingInterceptor(
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
 	clientID := extractClientID(ctx)
-	log.Printf("[log-interceptor] call -> method: %s, clientID: %s, request: %+v\n", info.FullMethod, clientID, req)
+	log.Printf(
+		"[log-interceptor] call -> method: %s, clientID: %s, request: %+v\n",
+		info.FullMethod,
+		clientID,
+		req,
+	)
 
 	resp, err := handler(ctx, req)
-	log.Printf("[log-interceptor] resp -> method: %s, clientID: %s, response: %+v, error: %v\n", info.FullMethod, clientID, resp, err)
+	log.Printf(
+		"[log-interceptor] resp -> method: %s, clientID: %s, response: %+v, error: %v\n",
+		info.FullMethod,
+		clientID,
+		resp,
+		err,
+	)
 
 	return resp, err
 }
