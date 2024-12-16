@@ -12,11 +12,13 @@ The above was run with *k=100*.
 Implemented with two separate clients, one to send data to be stored in the server, one to query each server for the $k$ nearest neighbours for their local data points. 
 
 **Sequential Time Complexity** consists of a simple heap implementation, such that for *n* data-points, to find the *k* nearest neighbours, we would need a time complexity of:
+
 $$
 O(n \cdot log(k))
 $$
 
 **Parallel Time Complexity** consists of querying for the local nearest neighbours of each server, and merging them together on the client side efficiently. Overall, we require a time complexity of:
+
 $$
 O(\frac{n}{s}\cdot log(k) + k\cdot log(k) \cdot log(s))
 $$
