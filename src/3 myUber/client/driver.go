@@ -12,9 +12,8 @@ import (
 	"google.golang.org/grpc"
 
 	comm "distsys/grpc-prog/myuber/comm"
+	config "distsys/grpc-prog/myuber/config"
 )
-
-const MAX_WAIT_TIME = 10
 
 func getRequestTimeout() time.Duration {
 	return 10 * time.Second
@@ -142,7 +141,7 @@ func connectDriver(conn *grpc.ClientConn, name string) error {
 		var choice string
 
 		inputChan := make(chan string)
-		ctx, cancel = context.WithTimeout(context.Background(), MAX_WAIT_TIME*time.Second)
+		ctx, cancel = context.WithTimeout(context.Background(), config.MAX_WAIT_TIME*time.Second)
 
 		go func() {
 			reader := bufio.NewReader(os.Stdin)
@@ -158,7 +157,10 @@ func connectDriver(conn *grpc.ClientConn, name string) error {
 
 		case <-ctx.Done():
 			cancel()
-			fmt.Printf("timeout of %ds hit, are you still there? (press enter)\n", MAX_WAIT_TIME)
+			fmt.Printf(
+				"timeout of %ds hit, are you still there? (press enter)\n",
+				config.MAX_WAIT_TIME,
+			)
 
 			err = timeoutHit(client, rideResponse.RideId)
 			if err != nil {

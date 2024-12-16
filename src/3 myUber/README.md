@@ -26,11 +26,9 @@ go run *.go
 
 For implementation details, see the report. 
 
-#### Changing some hyper-parameters
-- To change the load-balancing policy, navigate to [client-main](./client/main.go) and alter the arguments in the main function. The default load balancer is `random_pick` but `round_robin` and `pick_first` are also implemented. 
-- To change the number of rejections that lead to a cancellation of the ride-request, navigate to [server-state](./server/state.go) and change the const of the same name. 
-- To change the timeout before a ride is reassigned away from a driver, change the MAX_WAIT_TIME in [client-driver](./client/driver.go). The time there denotes time in seconds. 
+#### Parameters
+- The `load balancing` policy is a hyper-parameter to the client program.  
+- The `wait time` before a ride request offerred to a client (driver) is reassigned, and the `number of reassignemnts` before a ride request is cancelled outright, can be changed in [the config](./config/config.go). 
 
 ## TODO
-- Make the above data-points more easy to modify. 
 - Enhancements mentioned in report. 

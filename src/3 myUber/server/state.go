@@ -2,6 +2,7 @@ package main
 
 import (
 	comm "distsys/grpc-prog/myuber/comm"
+	config "distsys/grpc-prog/myuber/config"
 	"fmt"
 	"sync"
 )
@@ -12,10 +13,6 @@ const (
 	ACCEPTED  = "ACCEPTED"
 	COMPLETED = "COMPLETED"
 	CANCELLED = "CANCELLED"
-)
-
-const (
-	MAX_REASSIGNMENTS = 3
 )
 
 type RideDetails struct {
@@ -119,7 +116,7 @@ func RejectRide(rideID string) {
 	ride.numReassignments++
 
 	// if the number of rejections exceeds the limit, cancel the ride
-	if ride.numReassignments >= MAX_REASSIGNMENTS {
+	if ride.numReassignments >= config.MAX_REASSIGNMENTS {
 		ride.status = CANCELLED
 	} else {
 		ride.status = WAITING

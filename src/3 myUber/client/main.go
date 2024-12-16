@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
+	"slices"
 
 	"google.golang.org/grpc"
 
@@ -92,16 +94,26 @@ func createDriverClient(loadBalancer string) {
 func main() {
 	utils.PrintLines(10)
 
+	load_balancers := []string{"random_picker", "round_robin", "pick_first"}
+	loadBalancingPolicy := flag.String(
+		"load_balancer",
+		"random_picker",
+		fmt.Sprintf("load balancing policy: %s", load_balancers),
+	)
+
+	if !slices.Contains(load_balancers, *loadBalancingPolicy) {
+		log.Fatalf("invalid load balancing policy: %s", *loadBalancingPolicy)
+	}
+
 	var choice string
 	fmt.Println("rider or driver (r/d)?")
 	fmt.Scan(&choice)
 
-	// load balancer choices: random_picker, round_robin, pick_first
 	switch choice {
 	case "d":
-		createDriverClient("random_picker")
+		createDriverClient(*loadBalancingPolicy)
 	case "r":
-		createRiderClient("random_picker")
+		createRiderClient(*loadBalancingPolicy)
 	default:
 		fmt.Println("invalid choice")
 	}
