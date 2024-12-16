@@ -1,5 +1,8 @@
-## Running the Program
-### Installing Dependencies
+## My Uber
+
+For a detailed dive into the high level design and implementation, please see [the report](./report.pdf). 
+
+### Dependencies
 The required dependencies will be installed simply by running:
 ```sh
 go mod tidy
@@ -11,24 +14,23 @@ We also need to build from the `protobuf` files, and create the certificates req
 bash setup.sh
 ```
 
-### Running the program
-To launch a server:
+### Running 
+To launch a **server**:
 ```sh
 cd server
 go run *.go
 ```
 
-To launch a client:
+To launch a **client**:
 ```sh
 cd client 
-go run *.go
+go run *.go -load_balancer <load balancing policy>
 ```
 
-For implementation details, see the report. 
 
 #### Parameters
-- The `load balancing` policy is a hyper-parameter to the client program.  
 - The `wait time` before a ride request offerred to a client (driver) is reassigned, and the `number of reassignemnts` before a ride request is cancelled outright, can be changed in [the config](./config/config.go). 
+- The `load balancing` policy is a hyper-parameter to the client program.  
 
-## TODO
-- Enhancements mentioned in report. 
+### TODO
+- [ ] consider implementing the enhancements mentioned in the report  

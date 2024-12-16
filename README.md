@@ -1,2 +1,6 @@
 # gRPC-programming
-Assignment 4 - Distributed Systems (IIIT-H Monsoon '24)
+A subset of *Assignment 4* of the *Distributed Systems* course in IIIT-Hyderabad (Monsoon '24)
+
+## todo
+- [ ] high level architecture diagrams, plots of both programs 
+

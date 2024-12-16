@@ -1,6 +1,8 @@
-### Running and Checking the program
+# K Nearest Neighbours
 
-#### Installing the Required Dependencies
+For a detailed analysis, inclusing a qualitative and quantitative analysis, please see [the report](./report.pdf). 
+
+## Dependencies
 Since this is a `go` program, the dependencies can be downloaded simply by running
 
 ```sh
@@ -19,14 +21,14 @@ python create_data.py
 ```
 You may alter the number of data points, number of floating digits, etc. in this python script. 
 
-#### Running
-##### Single Command
+## Running
+### Single Command
 A sample launch script is provided in `launch.sh`. Simply run (**assuming you have gnome-terminal**):
 ```sh
 bash launch.sh
 ```
 
-##### Multiple Commands
+### Multiple Commands
 Launch each server by running:
 ```sh
 go run server/main.go "active_servers.txt"
